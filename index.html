@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Projetos</title>
+<title>Projetos · capimmm</title>
 <style>
   :root {
     --bg: #000;
@@ -28,9 +28,6 @@
     letter-spacing: -0.01em;
   }
 
-  /* ============================================
-     GRADE DE FUNDO
-     ============================================ */
   #grid {
     position: fixed;
     inset: 0;
@@ -48,9 +45,6 @@
     will-change: background, box-shadow;
   }
 
-  /* ============================================
-     CONTEÚDO
-     ============================================ */
   main {
     position: relative;
     z-index: 1;
@@ -62,11 +56,13 @@
     text-align: center;
     padding: 40px 24px;
     pointer-events: none;
+    overflow-y: auto;
   }
 
   header {
-    margin-bottom: 64px;
+    margin-bottom: 56px;
     animation: fadeIn 1.2s cubic-bezier(0.16, 1, 0.3, 1) both;
+    flex-shrink: 0;
   }
 
   header h1 {
@@ -80,9 +76,7 @@
   header p {
     margin-top: 16px;
     font-size: 1rem;
-    font-weight: 400;
     color: var(--text-dim);
-    letter-spacing: 0;
   }
 
   @keyframes fadeIn {
@@ -90,9 +84,6 @@
     to   { opacity: 1; transform: translateY(0);    filter: blur(0); }
   }
 
-  /* ============================================
-     GRID DE CARDS
-     ============================================ */
   .grid-cards {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(260px, 300px));
@@ -102,9 +93,6 @@
     max-width: 1000px;
   }
 
-  /* ============================================
-     CARD — APPLE STYLE
-     ============================================ */
   .card {
     position: relative;
     display: flex;
@@ -159,9 +147,7 @@
     transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
   }
 
-  .card:hover .icon {
-    transform: translateZ(48px) scale(1.08);
-  }
+  .card:hover .icon { transform: translateZ(48px) scale(1.08); }
 
   .card h3 {
     font-size: 1.15rem;
@@ -174,7 +160,6 @@
 
   .card .path {
     font-size: 0.75rem;
-    font-weight: 400;
     color: rgba(255,255,255,0.35);
     word-break: break-all;
     transform: translateZ(8px);
@@ -197,7 +182,6 @@
     color: #fff;
   }
 
-  /* entrada em cascata */
   .card:nth-child(1)    { animation-delay: 0.05s; }
   .card:nth-child(2)    { animation-delay: 0.12s; }
   .card:nth-child(3)    { animation-delay: 0.19s; }
@@ -210,9 +194,6 @@
   .card:nth-child(10)   { animation-delay: 0.68s; }
   .card:nth-child(n+11) { animation-delay: 0.75s; }
 
-  /* ============================================
-     ESTADOS
-     ============================================ */
   .loading, .error, .empty {
     text-align: center;
     padding: 60px 20px;
@@ -231,6 +212,11 @@
   }
 
   @keyframes spin { to { transform: rotate(360deg); } }
+
+  @media (max-width: 600px) {
+    header { margin-bottom: 40px; }
+    .card { padding: 26px 22px 38px; }
+  }
 
   @media (prefers-reduced-motion: reduce) {
     .block, .card { transition: none; }
@@ -257,10 +243,10 @@
 
 <script>
   // ============================================================
-  // ⚙️ CONFIGURE AQUI
+  // ⚙️ CONFIGURADO PARA: capimmm/utly
   // ============================================================
-  const GITHUB_USER = 'SEU_USUARIO';
-  const GITHUB_REPO = 'SEU_REPOSITORIO';
+  const GITHUB_USER = 'capimmm';
+  const GITHUB_REPO = 'utly';
   const BRANCH      = 'main';
   const IGNORAR     = ['index.html'];
   // ============================================================
@@ -272,7 +258,7 @@
   // 🔲 GRADE REATIVA
   // ============================================================
   const gridEl = document.getElementById('grid');
-  const SIZE = 46; // tamanho de cada bloquinho em px
+  const SIZE = 46;
 
   let cols, rows, blocks = [];
 
@@ -305,10 +291,10 @@
     resizeTimer = setTimeout(buildGrid, 200);
   });
 
-  const RADIUS = 3.2;              // alcance do brilho do mouse (em células)
-  const RIPPLE_DURATION = 750;     // duração da onda do clique (ms)
-  const RIPPLE_MAX_RADIUS = 9;     // até onde a onda se espalha
-  const RIPPLE_BAND = 1.4;         // largura da frente de onda
+  const RADIUS = 3.2;
+  const RIPPLE_DURATION = 750;
+  const RIPPLE_MAX_RADIUS = 9;
+  const RIPPLE_BAND = 1.4;
 
   let mouseX = -999, mouseY = -999;
   let ripples = [];
@@ -327,13 +313,11 @@
     ripples = ripples.filter(r => now - r.start < RIPPLE_DURATION);
 
     for (const b of blocks) {
-      // brilho do mouse
       const hdx = (b.c + 0.5) - mCol;
       const hdy = (b.r + 0.5) - mRow;
       const hDist = Math.sqrt(hdx * hdx + hdy * hdy);
       const hoverAlpha = hDist < RADIUS ? Math.pow(1 - hDist / RADIUS, 2) : 0;
 
-      // onda do clique
       let rippleAlpha = 0;
       for (const r of ripples) {
         const t = (now - r.start) / RIPPLE_DURATION;
@@ -389,9 +373,7 @@
   });
 
   window.addEventListener('click', (e) => {
-    // se clicar num card, deixa o clique seguir sem gerar onda
     if (e.target.closest('.card')) return;
-
     const { col, row } = cellCoords(e.clientX, e.clientY);
     ripples.push({ col, row, start: performance.now() });
     kickLoop();
@@ -405,7 +387,7 @@
   async function carregarArquivos() {
     try {
       const res = await fetch(API);
-      if (!res.ok) throw new Error('Falha ao consultar o repositório');
+      if (!res.ok) throw new Error(`Erro ${res.status} — verifique se o repo é público e o branch é "${BRANCH}"`);
       const data = await res.json();
 
       const files = data.tree
@@ -444,7 +426,6 @@
       </div>
     `;
 
-    // tilt 3D suave nos cards
     document.querySelectorAll('.card').forEach(card => {
       card.addEventListener('mousemove', e => {
         const r  = card.getBoundingClientRect();
