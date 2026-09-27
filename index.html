@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Projetos</title>
+<style>
+  :root {
+    --bg: #000;
+    --block: #0a0a0a;
+    --block-border: #1a1a1a;
+    --glow: #ffffff;
+    --glow-soft: #888888;
+    --text: #ffffff;
+    --text-dim: rgba(255,255,255,0.4);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html, body {
+    height: 100%;
+    background: var(--bg);
+    color: var(--text);
+    overflow: hidden;
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display',
+                 'Helvetica Neue', 'Segoe UI', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    letter-spacing: -0.01em;
+  }
+
+  /* ============================================
+     GRADE DE FUNDO
+     ============================================ */
+  #grid {
+    position: fixed;
+    inset: 0;
+    display: grid;
+    z-index: 0;
+    pointer-events: none;
+  }
+
+  .block {
+    background: var(--block);
+    border: 1px solid var(--block-border);
+    transition: background 0.15s ease,
+                box-shadow 0.15s ease,
+                border-color 0.15s ease;
+    will-change: background, box-shadow;
+  }
+
+  /* ============================================
+     CONTEÚDO
+     ============================================ */
+  main {
+    position: relative;
+    z-index: 1;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 40px 24px;
+    pointer-events: none;
+  }
+
+  header {
+    margin-bottom: 64px;
+    animation: fadeIn 1.2s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  header h1 {
+    font-size: clamp(2.4rem, 6vw, 4rem);
+    font-weight: 700;
+    letter-spacing: -0.045em;
+    line-height: 1.05;
+    color: #fff;
+  }
+
+  header p {
+    margin-top: 16px;
+    font-size: 1rem;
+    font-weight: 400;
+    color: var(--text-dim);
+    letter-spacing: 0;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(24px); filter: blur(6px); }
+    to   { opacity: 1; transform: translateY(0);    filter: blur(0); }
+  }
+
+  /* ============================================
+     GRID DE CARDS
+     ============================================ */
+  .grid-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 300px));
+    gap: 22px;
+    justify-content: center;
+    width: 100%;
+    max-width: 1000px;
+  }
+
+  /* ============================================
+     CARD — APPLE STYLE
+     ============================================ */
+  .card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    padding: 30px 26px 42px;
+    border-radius: 20px;
+    text-decoration: none;
+    color: inherit;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.08);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    transform-style: preserve-3d;
+    transition:
+      transform 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+      border-color 0.4s ease,
+      background 0.4s ease,
+      box-shadow 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    animation: cardIn 1s cubic-bezier(0.16, 1, 0.3, 1) both;
+    will-change: transform;
+    overflow: hidden;
+    pointer-events: auto;
+  }
+
+  .card:hover {
+    border-color: rgba(255,255,255,0.28);
+    background: rgba(255,255,255,0.06);
+    box-shadow:
+      0 40px 80px -30px rgba(255,255,255,0.22),
+      0 0 0 1px rgba(255,255,255,0.06),
+      inset 0 1px 0 rgba(255,255,255,0.1);
+  }
+
+  @keyframes cardIn {
+    from { opacity: 0; transform: translateY(30px) scale(0.96); filter: blur(8px); }
+    to   { opacity: 1; transform: translateY(0)    scale(1);    filter: blur(0); }
+  }
+
+  .card .icon {
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.15rem;
+    font-weight: 600;
+    color: #000;
+    background: #fff;
+    border-radius: 14px;
+    transform: translateZ(24px);
+    transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .card:hover .icon {
+    transform: translateZ(48px) scale(1.08);
+  }
+
+  .card h3 {
+    font-size: 1.15rem;
+    font-weight: 600;
+    letter-spacing: -0.025em;
+    color: #fff;
+    word-break: break-word;
+    transform: translateZ(16px);
+  }
+
+  .card .path {
+    font-size: 0.75rem;
+    font-weight: 400;
+    color: rgba(255,255,255,0.35);
+    word-break: break-all;
+    transform: translateZ(8px);
+  }
+
+  .card .arrow {
+    position: absolute;
+    right: 22px;
+    bottom: 20px;
+    font-size: 1.1rem;
+    color: rgba(255,255,255,0.3);
+    opacity: 0;
+    transform: translateX(-8px);
+    transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .card:hover .arrow {
+    opacity: 1;
+    transform: translateX(0);
+    color: #fff;
+  }
+
+  /* entrada em cascata */
+  .card:nth-child(1)    { animation-delay: 0.05s; }
+  .card:nth-child(2)    { animation-delay: 0.12s; }
+  .card:nth-child(3)    { animation-delay: 0.19s; }
+  .card:nth-child(4)    { animation-delay: 0.26s; }
+  .card:nth-child(5)    { animation-delay: 0.33s; }
+  .card:nth-child(6)    { animation-delay: 0.40s; }
+  .card:nth-child(7)    { animation-delay: 0.47s; }
+  .card:nth-child(8)    { animation-delay: 0.54s; }
+  .card:nth-child(9)    { animation-delay: 0.61s; }
+  .card:nth-child(10)   { animation-delay: 0.68s; }
+  .card:nth-child(n+11) { animation-delay: 0.75s; }
+
+  /* ============================================
+     ESTADOS
+     ============================================ */
+  .loading, .error, .empty {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--text-dim);
+    font-size: 1rem;
+  }
+
+  .spinner {
+    width: 32px;
+    height: 32px;
+    border: 2px solid rgba(255,255,255,0.12);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin 0.9s linear infinite;
+    margin: 0 auto 20px;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  @media (prefers-reduced-motion: reduce) {
+    .block, .card { transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<div id="grid"></div>
+
+<main>
+  <header>
+    <h1>Projetos</h1>
+    <p>Selecione um para continuar</p>
+  </header>
+
+  <div id="content">
+    <div class="loading">
+      <div class="spinner"></div>
+      Carregando…
+    </div>
+  </div>
+</main>
+
+<script>
+  // ============================================================
+  // ⚙️ CONFIGURE AQUI
+  // ============================================================
+  const GITHUB_USER = 'SEU_USUARIO';
+  const GITHUB_REPO = 'SEU_REPOSITORIO';
+  const BRANCH      = 'main';
+  const IGNORAR     = ['index.html'];
+  // ============================================================
+
+  const API      = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/git/trees/${BRANCH}?recursive=1`;
+  const BASE_URL = `https://${GITHUB_USER}.github.io/${GITHUB_REPO}/`;
+
+  // ============================================================
+  // 🔲 GRADE REATIVA
+  // ============================================================
+  const gridEl = document.getElementById('grid');
+  const SIZE = 46; // tamanho de cada bloquinho em px
+
+  let cols, rows, blocks = [];
+
+  function buildGrid() {
+    gridEl.innerHTML = '';
+    blocks = [];
+
+    cols = Math.ceil(window.innerWidth  / SIZE);
+    rows = Math.ceil(window.innerHeight / SIZE);
+
+    gridEl.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+    gridEl.style.gridTemplateRows    = `repeat(${rows}, 1fr)`;
+
+    const frag = document.createDocumentFragment();
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        const div = document.createElement('div');
+        div.className = 'block';
+        frag.appendChild(div);
+        blocks.push({ el: div, r, c });
+      }
+    }
+    gridEl.appendChild(frag);
+  }
+
+  buildGrid();
+  let resizeTimer;
+  window.addEventListener('resize', () => {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(buildGrid, 200);
+  });
+
+  const RADIUS = 3.2;              // alcance do brilho do mouse (em células)
+  const RIPPLE_DURATION = 750;     // duração da onda do clique (ms)
+  const RIPPLE_MAX_RADIUS = 9;     // até onde a onda se espalha
+  const RIPPLE_BAND = 1.4;         // largura da frente de onda
+
+  let mouseX = -999, mouseY = -999;
+  let ripples = [];
+  let loopRunning = false;
+
+  function cellCoords(px, py) {
+    const cellW = window.innerWidth  / cols;
+    const cellH = window.innerHeight / rows;
+    return { col: px / cellW, row: py / cellH };
+  }
+
+  function render() {
+    const { col: mCol, row: mRow } = cellCoords(mouseX, mouseY);
+    const now = performance.now();
+
+    ripples = ripples.filter(r => now - r.start < RIPPLE_DURATION);
+
+    for (const b of blocks) {
+      // brilho do mouse
+      const hdx = (b.c + 0.5) - mCol;
+      const hdy = (b.r + 0.5) - mRow;
+      const hDist = Math.sqrt(hdx * hdx + hdy * hdy);
+      const hoverAlpha = hDist < RADIUS ? Math.pow(1 - hDist / RADIUS, 2) : 0;
+
+      // onda do clique
+      let rippleAlpha = 0;
+      for (const r of ripples) {
+        const t = (now - r.start) / RIPPLE_DURATION;
+        const ringRadius = t * RIPPLE_MAX_RADIUS;
+        const fade = 1 - t;
+        const rdx = (b.c + 0.5) - r.col;
+        const rdy = (b.r + 0.5) - r.row;
+        const dist = Math.sqrt(rdx * rdx + rdy * rdy);
+        const band = Math.max(0, 1 - Math.abs(dist - ringRadius) / RIPPLE_BAND);
+        rippleAlpha = Math.max(rippleAlpha, band * fade);
+      }
+
+      const alpha = Math.min(1, Math.max(hoverAlpha, rippleAlpha * 1.15));
+
+      if (alpha > 0.01) {
+        b.el.style.background =
+          `color-mix(in srgb, var(--glow) ${(alpha * 55).toFixed(1)}%, var(--block))`;
+        b.el.style.borderColor =
+          `color-mix(in srgb, var(--glow) ${(alpha * 90).toFixed(1)}%, var(--block-border))`;
+        b.el.style.boxShadow =
+          `0 0 ${(alpha * 26).toFixed(1)}px color-mix(in srgb, var(--glow-soft) ${(alpha * 85).toFixed(1)}%, transparent)`;
+      } else if (b.el.style.background !== '') {
+        b.el.style.background  = '';
+        b.el.style.borderColor = '';
+        b.el.style.boxShadow   = '';
+      }
+    }
+
+    if (ripples.length > 0) {
+      requestAnimationFrame(render);
+    } else {
+      loopRunning = false;
+    }
+  }
+
+  function kickLoop() {
+    if (!loopRunning) {
+      loopRunning = true;
+      requestAnimationFrame(render);
+    }
+  }
+
+  window.addEventListener('mousemove', (e) => {
+    mouseX = e.clientX;
+    mouseY = e.clientY;
+    kickLoop();
+  });
+
+  window.addEventListener('mouseleave', () => {
+    mouseX = -999;
+    mouseY = -999;
+    kickLoop();
+  });
+
+  window.addEventListener('click', (e) => {
+    // se clicar num card, deixa o clique seguir sem gerar onda
+    if (e.target.closest('.card')) return;
+
+    const { col, row } = cellCoords(e.clientX, e.clientY);
+    ripples.push({ col, row, start: performance.now() });
+    kickLoop();
+  });
+
+  // ============================================================
+  // 📁 CARREGA ARQUIVOS DO GITHUB
+  // ============================================================
+  const content = document.getElementById('content');
+
+  async function carregarArquivos() {
+    try {
+      const res = await fetch(API);
+      if (!res.ok) throw new Error('Falha ao consultar o repositório');
+      const data = await res.json();
+
+      const files = data.tree
+        .filter(i => i.type === 'blob')
+        .filter(i => i.path.toLowerCase().endsWith('.html'))
+        .filter(i => !IGNORAR.includes(i.path))
+        .map(i => ({
+          name: i.path.split('/').pop().replace('.html', ''),
+          path: i.path,
+          url : BASE_URL + i.path
+        }));
+
+      renderizar(files);
+    } catch (err) {
+      content.innerHTML = `<div class="error">Erro: ${err.message}</div>`;
+      console.error(err);
+    }
+  }
+
+  function renderizar(files) {
+    if (!files.length) {
+      content.innerHTML = '<div class="empty">Nenhum projeto encontrado</div>';
+      return;
+    }
+
+    content.innerHTML = `
+      <div class="grid-cards">
+        ${files.map(f => `
+          <a class="card" href="${f.url}">
+            <div class="icon">→</div>
+            <h3>${formatarNome(f.name)}</h3>
+            <div class="path">${f.path}</div>
+            <span class="arrow">↗</span>
+          </a>
+        `).join('')}
+      </div>
+    `;
+
+    // tilt 3D suave nos cards
+    document.querySelectorAll('.card').forEach(card => {
+      card.addEventListener('mousemove', e => {
+        const r  = card.getBoundingClientRect();
+        const x  = e.clientX - r.left;
+        const y  = e.clientY - r.top;
+        const rx = ((y - r.height / 2) / (r.height / 2)) * -6;
+        const ry = ((x - r.width  / 2) / (r.width  / 2)) *  6;
+        card.style.transform =
+          `translateY(-8px) rotateX(${rx}deg) rotateY(${ry}deg) scale(1.02)`;
+      });
+      card.addEventListener('mouseleave', () => {
+        card.style.transform = '';
+      });
+    });
+  }
+
+  function formatarNome(nome) {
+    return nome
+      .replace(/[-_]/g, ' ')
+      .replace(/\b\w/g, l => l.toUpperCase());
+  }
+
+  carregarArquivos();
+</script>
+
+</body>
+</html>
