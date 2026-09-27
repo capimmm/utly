@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Projetos · capimmm</title>
 <style>
   :root {
@@ -11,23 +11,35 @@
     --block-border: #1a1a1a;
     --glow: #ffffff;
     --glow-soft: #888888;
-    --text: #ffffff;
-    --text-dim: rgba(255,255,255,0.4);
+    --ink: #ffffff;
+    --ink-dim: rgba(255,255,255,0.60);
+    --ink-faint: rgba(255,255,255,0.34);
+    --glass-bg: rgba(255,255,255,0.055);
+    --glass-bg-hover: rgba(255,255,255,0.10);
+    --glass-border: rgba(255,255,255,0.14);
+    --ease: cubic-bezier(.19, 1, .22, 1);
   }
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
 
   html, body {
-    height: 100%;
+    min-height: 100%;
     background: var(--bg);
-    color: var(--text);
-    overflow: hidden;
-    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display',
-                 'Helvetica Neue', 'Segoe UI', sans-serif;
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text',
+                 'Inter', 'Segoe UI', sans-serif;
     -webkit-font-smoothing: antialiased;
     letter-spacing: -0.01em;
   }
 
+  body {
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+
+  /* ============================================
+     GRADE REATIVA
+     ============================================ */
   #grid {
     position: fixed;
     inset: 0;
@@ -45,28 +57,29 @@
     will-change: background, box-shadow;
   }
 
+  /* ============================================
+     CONTEÚDO
+     ============================================ */
   main {
     position: relative;
     z-index: 1;
-    height: 100vh;
+    min-height: 100vh;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    text-align: center;
-    padding: 40px 24px;
+    padding: 80px 20px;
     pointer-events: none;
-    overflow-y: auto;
   }
 
   header {
+    text-align: center;
     margin-bottom: 56px;
-    animation: fadeIn 1.2s cubic-bezier(0.16, 1, 0.3, 1) both;
-    flex-shrink: 0;
+    animation: fadeIn 1.2s var(--ease) both;
   }
 
   header h1 {
-    font-size: clamp(2.4rem, 6vw, 4rem);
+    font-size: clamp(2.4rem, 6vw, 3.8rem);
     font-weight: 700;
     letter-spacing: -0.045em;
     line-height: 1.05;
@@ -74,9 +87,9 @@
   }
 
   header p {
-    margin-top: 16px;
+    margin-top: 14px;
     font-size: 1rem;
-    color: var(--text-dim);
+    color: var(--ink-dim);
   }
 
   @keyframes fadeIn {
@@ -84,142 +97,247 @@
     to   { opacity: 1; transform: translateY(0);    filter: blur(0); }
   }
 
+  /* ============================================
+     GRID DE CARDS
+     ============================================ */
   .grid-cards {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(260px, 300px));
-    gap: 22px;
-    justify-content: center;
+    grid-template-columns: 1fr;
+    gap: 16px;
     width: 100%;
-    max-width: 1000px;
-  }
-
-  .card {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    gap: 14px;
-    padding: 30px 26px 42px;
-    border-radius: 20px;
-    text-decoration: none;
-    color: inherit;
-    background: rgba(255,255,255,0.03);
-    border: 1px solid rgba(255,255,255,0.08);
-    backdrop-filter: blur(24px);
-    -webkit-backdrop-filter: blur(24px);
-    transform-style: preserve-3d;
-    transition:
-      transform 0.6s cubic-bezier(0.16, 1, 0.3, 1),
-      border-color 0.4s ease,
-      background 0.4s ease,
-      box-shadow 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-    animation: cardIn 1s cubic-bezier(0.16, 1, 0.3, 1) both;
-    will-change: transform;
-    overflow: hidden;
+    max-width: 460px;
     pointer-events: auto;
   }
 
-  .card:hover {
-    border-color: rgba(255,255,255,0.28);
-    background: rgba(255,255,255,0.06);
-    box-shadow:
-      0 40px 80px -30px rgba(255,255,255,0.22),
-      0 0 0 1px rgba(255,255,255,0.06),
-      inset 0 1px 0 rgba(255,255,255,0.1);
+  /* ============================================
+     CARD — GLASS APPLE
+     ============================================ */
+  .card-link {
+    display: block;
+    text-decoration: none;
+    color: inherit;
+    -webkit-tap-highlight-color: transparent;
+    animation: cardIn 1s var(--ease) both;
   }
 
   @keyframes cardIn {
-    from { opacity: 0; transform: translateY(30px) scale(0.96); filter: blur(8px); }
+    from { opacity: 0; transform: translateY(30px) scale(0.97); filter: blur(8px); }
     to   { opacity: 1; transform: translateY(0)    scale(1);    filter: blur(0); }
   }
 
-  .card .icon {
+  .card-link:nth-child(1)    { animation-delay: 0.05s; }
+  .card-link:nth-child(2)    { animation-delay: 0.12s; }
+  .card-link:nth-child(3)    { animation-delay: 0.19s; }
+  .card-link:nth-child(4)    { animation-delay: 0.26s; }
+  .card-link:nth-child(5)    { animation-delay: 0.33s; }
+  .card-link:nth-child(6)    { animation-delay: 0.40s; }
+  .card-link:nth-child(7)    { animation-delay: 0.47s; }
+  .card-link:nth-child(8)    { animation-delay: 0.54s; }
+  .card-link:nth-child(9)    { animation-delay: 0.61s; }
+  .card-link:nth-child(10)   { animation-delay: 0.68s; }
+  .card-link:nth-child(n+11) { animation-delay: 0.75s; }
+
+  .card {
+    border-radius: 22px;
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    backdrop-filter: blur(26px) saturate(140%);
+    -webkit-backdrop-filter: blur(26px) saturate(140%);
+    box-shadow:
+      0 1px 0 rgba(255,255,255,0.18) inset,
+      0 20px 45px -22px rgba(0,0,0,0.8);
+    transition:
+      transform .6s var(--ease),
+      background .5s ease,
+      box-shadow .6s var(--ease);
+    will-change: transform;
+    overflow: hidden;
+  }
+
+  .card-link:hover .card {
+    transform: translateY(-3px);
+    background: var(--glass-bg-hover);
+    box-shadow:
+      0 1px 0 rgba(255,255,255,0.24) inset,
+      0 30px 60px -20px rgba(0,0,0,0.85),
+      0 0 40px -10px rgba(255,255,255,0.10);
+  }
+
+  .card-link:active .card {
+    transform: translateY(-1px) scale(0.988);
+  }
+
+  .card-link:focus-visible .card {
+    outline: 2px solid rgba(255,255,255,0.85);
+    outline-offset: 3px;
+  }
+
+  .main-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 18px 20px 18px 18px;
+  }
+
+  .icon {
+    flex-shrink: 0;
     width: 50px;
     height: 50px;
+    border-radius: 14px;
+    background: rgba(255,255,255,0.10);
+    border: 1px solid rgba(255,255,255,0.16);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.15rem;
+    transition: transform .6s var(--ease), background .5s ease;
+  }
+
+  .card-link:hover .icon {
+    transform: scale(1.06);
+    background: rgba(255,255,255,0.16);
+  }
+
+  .icon svg { width: 22px; height: 22px; }
+
+  .info { flex: 1; min-width: 0; }
+
+  .info-title {
+    font-size: 15.5px;
     font-weight: 600;
-    color: #000;
-    background: #fff;
-    border-radius: 14px;
-    transform: translateZ(24px);
-    transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    color: var(--ink);
+    letter-spacing: -0.01em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
-  .card:hover .icon { transform: translateZ(48px) scale(1.08); }
-
-  .card h3 {
-    font-size: 1.15rem;
-    font-weight: 600;
-    letter-spacing: -0.025em;
-    color: #fff;
-    word-break: break-word;
-    transform: translateZ(16px);
+  .info-sub {
+    font-size: 12.5px;
+    color: var(--ink-dim);
+    margin-top: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    position: relative;
+    height: 17px;
   }
 
-  .card .path {
-    font-size: 0.75rem;
-    color: rgba(255,255,255,0.35);
-    word-break: break-all;
-    transform: translateZ(8px);
-  }
-
-  .card .arrow {
+  .info-sub span {
     position: absolute;
-    right: 22px;
-    bottom: 20px;
-    font-size: 1.1rem;
-    color: rgba(255,255,255,0.3);
-    opacity: 0;
-    transform: translateX(-8px);
-    transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
-  }
-
-  .card:hover .arrow {
+    left: 0;
+    top: 0;
+    white-space: nowrap;
     opacity: 1;
-    transform: translateX(0);
-    color: #fff;
+    transform: translateY(0);
+    transition: opacity .38s var(--ease), transform .45s var(--ease);
   }
 
-  .card:nth-child(1)    { animation-delay: 0.05s; }
-  .card:nth-child(2)    { animation-delay: 0.12s; }
-  .card:nth-child(3)    { animation-delay: 0.19s; }
-  .card:nth-child(4)    { animation-delay: 0.26s; }
-  .card:nth-child(5)    { animation-delay: 0.33s; }
-  .card:nth-child(6)    { animation-delay: 0.40s; }
-  .card:nth-child(7)    { animation-delay: 0.47s; }
-  .card:nth-child(8)    { animation-delay: 0.54s; }
-  .card:nth-child(9)    { animation-delay: 0.61s; }
-  .card:nth-child(10)   { animation-delay: 0.68s; }
-  .card:nth-child(n+11) { animation-delay: 0.75s; }
+  .info-sub span.leaving {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
 
+  .info-sub span.entering {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+
+  .chevron {
+    flex-shrink: 0;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.10);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform .6s var(--ease), background .5s ease;
+  }
+
+  .chevron svg {
+    width: 13px;
+    height: 13px;
+    transition: transform .6s var(--ease);
+  }
+
+  .card-link:hover .chevron { background: rgba(255,255,255,0.18); }
+  .card-link:hover .chevron svg { transform: rotate(90deg); }
+
+  /* expansão ao hover */
+  .expand {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows .6s var(--ease);
+  }
+
+  .card-link:hover .expand {
+    grid-template-rows: 1fr;
+  }
+
+  .expand-inner { overflow: hidden; }
+
+  .expand-content {
+    padding: 0 20px 20px 84px;
+    opacity: 0;
+    transform: translateY(-4px);
+    transition: opacity .45s ease .05s,
+                transform .5s var(--ease) .05s;
+  }
+
+  .card-link:hover .expand-content {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .expand-content p {
+    font-size: 12.5px;
+    line-height: 1.55;
+    color: var(--ink-faint);
+  }
+
+  .expand-content .url {
+    display: inline-block;
+    margin-top: 10px;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    color: var(--ink-dim);
+    border-top: 1px solid rgba(255,255,255,0.12);
+    padding-top: 10px;
+    word-break: break-all;
+  }
+
+  /* ============================================
+     ESTADOS
+     ============================================ */
   .loading, .error, .empty {
     text-align: center;
     padding: 60px 20px;
-    color: var(--text-dim);
-    font-size: 1rem;
+    color: var(--ink-dim);
+    font-size: 0.95rem;
+    animation: fadeIn 0.6s ease both;
   }
 
   .spinner {
-    width: 32px;
-    height: 32px;
+    width: 30px;
+    height: 30px;
     border: 2px solid rgba(255,255,255,0.12);
     border-top-color: #fff;
     border-radius: 50%;
     animation: spin 0.9s linear infinite;
-    margin: 0 auto 20px;
+    margin: 0 auto 18px;
   }
 
   @keyframes spin { to { transform: rotate(360deg); } }
 
   @media (max-width: 600px) {
+    main { padding: 60px 16px; }
     header { margin-bottom: 40px; }
-    .card { padding: 26px 22px 38px; }
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .block, .card { transition: none; }
+    .block, .card, .icon, .chevron, .chevron svg,
+    .expand, .expand-content, .card-link { transition: none; animation: none; }
   }
 </style>
 </head>
@@ -233,7 +351,7 @@
     <p>Selecione um para continuar</p>
   </header>
 
-  <div id="content">
+  <div id="content" style="width:100%; display:flex; justify-content:center;">
     <div class="loading">
       <div class="spinner"></div>
       Carregando…
@@ -243,11 +361,11 @@
 
 <script>
   // ============================================================
-  // ⚙️ CONFIGURADO PARA: capimmm/utly
+  // ⚙️ CONFIG
   // ============================================================
   const GITHUB_USER = 'capimmm';
   const GITHUB_REPO = 'utly';
-  const BRANCH      = 'main';
+  const BRANCH      = 'main';           // troque p/ 'master' se necessário
   const IGNORAR     = ['index.html'];
   // ============================================================
 
@@ -373,14 +491,14 @@
   });
 
   window.addEventListener('click', (e) => {
-    if (e.target.closest('.card')) return;
+    if (e.target.closest('.card-link')) return;
     const { col, row } = cellCoords(e.clientX, e.clientY);
     ripples.push({ col, row, start: performance.now() });
     kickLoop();
   });
 
   // ============================================================
-  // 📁 CARREGA ARQUIVOS DO GITHUB
+  // 📁 CARREGA E RENDERIZA OS CARDS
   // ============================================================
   const content = document.getElementById('content');
 
@@ -415,29 +533,96 @@
 
     content.innerHTML = `
       <div class="grid-cards">
-        ${files.map(f => `
-          <a class="card" href="${f.url}">
-            <div class="icon">→</div>
-            <h3>${formatarNome(f.name)}</h3>
-            <div class="path">${f.path}</div>
-            <span class="arrow">↗</span>
-          </a>
-        `).join('')}
+        ${files.map((f, i) => criarCard(f, i)).join('')}
       </div>
     `;
 
-    document.querySelectorAll('.card').forEach(card => {
-      card.addEventListener('mousemove', e => {
-        const r  = card.getBoundingClientRect();
-        const x  = e.clientX - r.left;
-        const y  = e.clientY - r.top;
-        const rx = ((y - r.height / 2) / (r.height / 2)) * -6;
-        const ry = ((x - r.width  / 2) / (r.width  / 2)) *  6;
-        card.style.transform =
-          `translateY(-8px) rotateX(${rx}deg) rotateY(${ry}deg) scale(1.02)`;
+    ativarCycling(files);
+  }
+
+  function criarCard(f, index) {
+    const nomeBonito = formatarNome(f.name);
+    const frases = [
+      f.path,
+      'Clique para abrir',
+      f.url
+    ];
+
+    return `
+      <a class="card-link"
+         href="${f.url}"
+         data-index="${index}"
+         data-phrases='${JSON.stringify(frases)}'>
+        <div class="card">
+          <div class="main-row">
+            <div class="icon">
+              <svg viewBox="0 0 24 24" fill="none">
+                <path d="M4 7a2 2 0 0 1 2-2h4l2 2h6a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7z"
+                      stroke="white" stroke-width="1.6" stroke-linejoin="round"/>
+              </svg>
+            </div>
+            <div class="info">
+              <div class="info-title">${nomeBonito}</div>
+              <div class="info-sub">
+                <span>${frases[0]}</span>
+              </div>
+            </div>
+            <div class="chevron">
+              <svg viewBox="0 0 24 24" fill="none">
+                <path d="M9 6l6 6-6 6"
+                      stroke="white" stroke-width="2"
+                      stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+          </div>
+          <div class="expand">
+            <div class="expand-inner">
+              <div class="expand-content">
+                <p>Página HTML do repositório ${GITHUB_USER}/${GITHUB_REPO}.</p>
+                <span class="url">${f.url}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </a>
+    `;
+  }
+
+  // ============================================================
+  // 🔄 CICLO DE FRASES (por card, só quando hover)
+  // ============================================================
+  function ativarCycling() {
+    document.querySelectorAll('.card-link').forEach(cardLink => {
+      const frases = JSON.parse(cardLink.dataset.phrases);
+      const cycleEl = cardLink.querySelector('.info-sub span');
+      let cycleTimer = null;
+      let idx = 0;
+
+      function setPhrase(text) {
+        const current = cycleEl;
+        current.classList.add('leaving');
+        setTimeout(() => {
+          current.textContent = text;
+          current.classList.remove('leaving');
+          current.classList.add('entering');
+          void current.offsetWidth;
+          current.classList.remove('entering');
+        }, 260);
+      }
+
+      cardLink.addEventListener('mouseenter', () => {
+        idx = 0;
+        clearInterval(cycleTimer);
+        cycleTimer = setInterval(() => {
+          idx = (idx + 1) % frases.length;
+          setPhrase(frases[idx]);
+        }, 1600);
       });
-      card.addEventListener('mouseleave', () => {
-        card.style.transform = '';
+
+      cardLink.addEventListener('mouseleave', () => {
+        clearInterval(cycleTimer);
+        idx = 0;
+        setPhrase(frases[0]);
       });
     });
   }
