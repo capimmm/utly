@@ -1,0 +1,1539 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="dark">
+<title>CapimmRank</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #000;
+    --surface: #0a0a0a;
+    --surface-2: #141414;
+    --border: #1e1e1e;
+    --border-hover: #333;
+    --text: #fff;
+    --text-dim: #8a8a8a;
+    --text-faint: #4a4a4a;
+
+    --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+    --ease-spring:   cubic-bezier(0.34, 1.56, 0.64, 1);
+    --ease-smooth:   cubic-bezier(0.32, 0.72, 0, 1);
+  }
+
+  html, body { height: 100%; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, Arial, sans-serif;
+    min-height: 100vh;
+    padding: 96px 20px 160px;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overflow-x: hidden;
+    letter-spacing: -0.01em;
+  }
+
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(700px 420px at 50% -8%, rgba(255,255,255,0.055), transparent 72%),
+      radial-gradient(500px 300px at 50% 108%, rgba(255,255,255,0.035), transparent 72%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ==================== TOPBAR ==================== */
+  .topbar {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 40;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 14px 20px;
+    background: rgba(0, 0, 0, 0.62);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    backdrop-filter: blur(24px) saturate(180%);
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
+    animation: fadeDown 0.8s var(--ease-out-expo) both;
+  }
+
+  .topbar-brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .brand-icon {
+    width: 32px; height: 32px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    background: var(--surface);
+    transition: border-color 0.4s var(--ease-smooth), transform 0.6s var(--ease-out-expo);
+  }
+  .brand-icon:hover { border-color: var(--border-hover); transform: rotate(-8deg); }
+  .brand-icon svg { width: 17px; height: 17px; stroke: var(--text); fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+
+  .brand-text {
+    font-size: 1.05rem;
+    font-weight: 700;
+    letter-spacing: -0.025em;
+  }
+  .brand-text span { color: var(--text-dim); font-weight: 400; }
+
+  /* ==================== HOTBAR ==================== */
+  .hotbar-wrap {
+    position: fixed;
+    bottom: 26px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 50;
+    animation: hotbarIn 0.9s var(--ease-out-expo) 0.15s both;
+  }
+
+  @keyframes hotbarIn {
+    from { opacity: 0; transform: translateX(-50%) translateY(28px) scale(0.94); }
+    to   { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
+  }
+
+  .hotbar {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 6px;
+    background: rgba(18, 18, 18, 0.72);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 999px;
+    backdrop-filter: blur(28px) saturate(180%);
+    -webkit-backdrop-filter: blur(28px) saturate(180%);
+    box-shadow:
+      0 1px 0 rgba(255,255,255,0.06) inset,
+      0 20px 60px rgba(0,0,0,0.7),
+      0 4px 16px rgba(0,0,0,0.5);
+  }
+
+  .hb-btn {
+    display: inline-flex;
+    align-items: center;
+    height: 42px;
+    padding: 0 12px;
+    gap: 0;
+    border: none;
+    border-radius: 999px;
+    background: transparent;
+    color: var(--text-dim);
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 0.85rem;
+    font-weight: 500;
+    letter-spacing: -0.005em;
+    white-space: nowrap;
+    overflow: hidden;
+    transition:
+      color 0.35s var(--ease-smooth),
+      background 0.35s var(--ease-smooth),
+      gap 0.5s var(--ease-smooth),
+      padding 0.5s var(--ease-smooth),
+      transform 0.35s var(--ease-spring);
+  }
+  .hb-btn:hover {
+    color: var(--text);
+    background: rgba(255, 255, 255, 0.07);
+    gap: 9px;
+    padding: 0 16px;
+  }
+  .hb-btn:active { transform: scale(0.94); }
+
+  .hb-btn.active {
+    color: var(--text);
+    background: rgba(255, 255, 255, 0.1);
+  }
+
+  .hb-btn.doar { color: #e8e8e8; }
+  .hb-btn.doar:hover { background: rgba(255,255,255,0.12); color: #fff; }
+
+  .hb-icon {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+  }
+  .hb-icon svg {
+    width: 18px; height: 18px;
+    stroke: currentColor; fill: none;
+    stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round;
+    transition: transform 0.6s var(--ease-out-expo);
+  }
+
+  .hb-btn:hover .icon-save  { transform: translateY(-1px) scale(1.06); }
+  .hb-btn:hover .icon-photo { transform: translateY(-1.5px) scale(1.06); }
+  .hb-btn:hover .icon-copy  { transform: scale(1.1); }
+  .hb-btn:hover .icon-trash { transform: rotate(-14deg) scale(1.05); }
+  .hb-btn:hover .icon-folder{ transform: translateY(-1px) scale(1.06); }
+  .hb-btn:hover .icon-heart { transform: scale(1.12); }
+  .hb-btn:hover .icon-heart path { fill: currentColor; }
+
+  .hb-label {
+    max-width: 0;
+    opacity: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    transition:
+      max-width 0.55s var(--ease-smooth),
+      opacity 0.35s var(--ease-smooth);
+  }
+  .hb-btn:hover .hb-label,
+  .hb-btn.active .hb-label {
+    max-width: 90px;
+    opacity: 1;
+  }
+
+  .hb-btn.success {
+    color: #fff;
+    background: rgba(255,255,255,0.12);
+  }
+  .hb-btn.success .hb-icon svg { animation: iconPop 0.6s var(--ease-spring); }
+
+  @keyframes iconPop {
+    0%   { transform: scale(1); }
+    45%  { transform: scale(1.3); }
+    100% { transform: scale(1); }
+  }
+
+  .hb-divider {
+    width: 1px; height: 20px;
+    background: rgba(255,255,255,0.08);
+    margin: 0 2px;
+    flex-shrink: 0;
+  }
+
+  .hb-badge {
+    position: absolute;
+    top: -6px;
+    right: -7px;
+    min-width: 17px;
+    height: 17px;
+    padding: 0 5px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--text);
+    color: var(--bg);
+    border-radius: 999px;
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 0;
+    font-variant-numeric: tabular-nums;
+    transform: scale(1);
+    transition: transform 0.5s var(--ease-spring), opacity 0.3s ease;
+  }
+  .hb-badge.hidden { opacity: 0; transform: scale(0.5); }
+
+  /* ==================== DROPDOWN (acima da hotbar) ==================== */
+  .dropdown {
+    position: fixed;
+    bottom: 92px;
+    left: 50%;
+    width: 320px;
+    max-width: calc(100vw - 40px);
+    max-height: 0;
+    overflow: hidden;
+    background: rgba(18, 18, 18, 0.86);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 20px;
+    backdrop-filter: blur(30px) saturate(180%);
+    -webkit-backdrop-filter: blur(30px) saturate(180%);
+    box-shadow:
+      0 1px 0 rgba(255,255,255,0.06) inset,
+      0 30px 80px rgba(0,0,0,0.75);
+    z-index: 49;
+    opacity: 0;
+    transform: translateX(-50%) translateY(14px) scale(0.94);
+    transform-origin: bottom center;
+    pointer-events: none;
+    transition:
+      opacity 0.3s var(--ease-smooth),
+      transform 0.5s var(--ease-out-expo),
+      max-height 0.55s var(--ease-out-expo);
+  }
+
+  .dropdown.open {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0) scale(1);
+    max-height: 420px;
+    pointer-events: auto;
+  }
+
+  .dropdown-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 16px 10px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--text-dim);
+  }
+  .dropdown-count {
+    font-size: 0.68rem;
+    letter-spacing: 0.06em;
+    color: var(--text-faint);
+    text-transform: none;
+  }
+
+  .dropdown-list {
+    max-height: 340px;
+    overflow-y: auto;
+    padding: 0 8px 8px;
+    scrollbar-width: thin;
+    scrollbar-color: #2a2a2a transparent;
+  }
+  .dropdown-list::-webkit-scrollbar { width: 6px; }
+  .dropdown-list::-webkit-scrollbar-thumb { background: #2a2a2a; border-radius: 3px; }
+
+  .placar-item {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 11px 12px;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: background 0.25s var(--ease-smooth);
+    animation: itemIn 0.5s var(--ease-out-expo) both;
+  }
+  .placar-item:hover { background: rgba(255,255,255,0.055); }
+
+  .placar-item-icon {
+    width: 34px; height: 34px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 9px;
+    background: rgba(255,255,255,0.05);
+    color: var(--text-dim);
+    transition: background 0.3s var(--ease-smooth), color 0.3s var(--ease-smooth);
+  }
+  .placar-item:hover .placar-item-icon {
+    background: rgba(255,255,255,0.1);
+    color: var(--text);
+  }
+  .placar-item-icon svg {
+    width: 15px; height: 15px;
+    stroke: currentColor; fill: none;
+    stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round;
+  }
+
+  .placar-item-info { flex: 1; min-width: 0; }
+
+  .placar-item-nome {
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: var(--text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    letter-spacing: -0.008em;
+  }
+  .placar-item-meta {
+    font-size: 0.72rem;
+    color: var(--text-faint);
+    margin-top: 2px;
+    letter-spacing: 0;
+  }
+
+  .placar-item-del {
+    width: 28px; height: 28px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    background: transparent;
+    border-radius: 8px;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.25s var(--ease-smooth), background 0.25s var(--ease-smooth);
+  }
+  .placar-item:hover .placar-item-del { opacity: 1; }
+  .placar-item-del:hover { background: rgba(255,255,255,0.08); }
+  .placar-item-del svg {
+    width: 13px; height: 13px;
+    stroke: var(--text-dim); fill: none;
+    stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
+    transition: stroke 0.2s ease;
+  }
+  .placar-item-del:hover svg { stroke: var(--text); }
+
+  .dropdown-empty {
+    padding: 32px 16px 26px;
+    text-align: center;
+    color: var(--text-faint);
+    font-size: 0.82rem;
+    line-height: 1.5;
+  }
+  .dropdown-empty svg {
+    width: 26px; height: 26px;
+    stroke: var(--text-faint); fill: none;
+    stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round;
+    margin-bottom: 10px;
+    opacity: 0.55;
+  }
+
+  @keyframes itemIn {
+    from { opacity: 0; transform: translateY(-6px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ==================== CONTAINER ==================== */
+  .container {
+    width: 100%;
+    max-width: 460px;
+    margin: 0 auto;
+    position: relative;
+    z-index: 1;
+  }
+
+  .form {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 18px;
+    animation: fadeDown 0.8s var(--ease-out-expo) 0.08s both;
+  }
+  .input-wrap { position: relative; flex: 1; }
+  .input-wrap svg {
+    position: absolute;
+    left: 14px; top: 50%;
+    transform: translateY(-50%);
+    width: 16px; height: 16px;
+    stroke: var(--text-faint); fill: none;
+    stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
+    pointer-events: none;
+    transition: stroke 0.3s var(--ease-smooth);
+  }
+  .input-wrap:focus-within svg { stroke: var(--text); }
+
+  .form input {
+    width: 100%;
+    padding: 14px 14px 14px 40px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text);
+    font-size: 0.92rem;
+    font-family: inherit;
+    outline: none;
+    transition: border-color 0.35s var(--ease-smooth), background 0.35s var(--ease-smooth);
+  }
+  .form input::placeholder { color: var(--text-faint); }
+  .form input:focus { border-color: var(--border-hover); background: var(--surface-2); }
+  .form input[type="number"] {
+    max-width: 92px;
+    -moz-appearance: textfield; appearance: textfield;
+  }
+  .form input[type="number"]::-webkit-outer-spin-button,
+  .form input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+
+  .btn-add {
+    width: 48px; height: 48px;
+    flex-shrink: 0;
+    border: none; border-radius: 12px;
+    background: var(--text); color: var(--bg);
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: transform 0.3s var(--ease-spring), opacity 0.25s var(--ease-smooth);
+  }
+  .btn-add svg {
+    width: 20px; height: 20px;
+    stroke: var(--bg); stroke-width: 2.5; fill: none; stroke-linecap: round;
+    transition: transform 0.5s var(--ease-out-expo);
+  }
+  .btn-add:hover { opacity: 0.9; }
+  .btn-add:hover svg { transform: rotate(90deg); }
+  .btn-add:active { transform: scale(0.92); }
+
+  /* ==================== CARD TABELA ==================== */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 24px 22px 20px;
+    animation: fadeUp 0.9s var(--ease-out-expo) 0.16s both;
+    will-change: height;
+  }
+
+  table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+
+  thead th {
+    text-align: left;
+    font-size: 0.68rem; font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.13em;
+    color: var(--text-dim);
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--border);
+  }
+  th.col-pos  { width: 68px; }
+  th.col-nome { text-align: center; }
+  th.col-pts  { text-align: right; width: 68px; }
+
+  tbody tr {
+    border-bottom: 1px solid var(--border);
+    transition: background 0.3s var(--ease-smooth);
+    animation: rowIn 0.55s var(--ease-out-expo) both;
+  }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:hover { background: rgba(255,255,255,0.022); }
+
+  td { padding: 15px 0; font-size: 0.94rem; }
+  td.col-pos { font-weight: 700; color: var(--text-dim); font-variant-numeric: tabular-nums; }
+  td.col-nome { text-align: center; font-weight: 600; position: relative; padding: 15px 8px; }
+  td.col-pts { text-align: right; font-weight: 700; font-variant-numeric: tabular-nums; }
+
+  tr.top-1 td.col-pos, tr.top-1 td.col-pts { color: #fff; }
+  tr.top-2 td.col-pos, tr.top-2 td.col-pts { color: #c8c8c8; }
+  tr.top-3 td.col-pos, tr.top-3 td.col-pts { color: #9a9a9a; }
+
+  .btn-remove {
+    position: absolute;
+    right: -6px; top: 50%;
+    transform: translateY(-50%) scale(0.6);
+    width: 26px; height: 26px;
+    border-radius: 8px;
+    border: 1px solid transparent;
+    background: transparent;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    opacity: 0;
+    pointer-events: none;
+    transition:
+      opacity 0.3s var(--ease-smooth),
+      transform 0.4s var(--ease-out-expo),
+      background 0.3s var(--ease-smooth),
+      border-color 0.3s var(--ease-smooth);
+  }
+  .btn-remove svg {
+    width: 13px; height: 13px;
+    stroke: var(--text-dim); fill: none;
+    stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round;
+    transition: stroke 0.25s var(--ease-smooth);
+  }
+  tbody tr:hover .btn-remove {
+    opacity: 1; pointer-events: auto;
+    transform: translateY(-50%) scale(1);
+  }
+  .btn-remove:hover {
+    background: rgba(255,255,255,0.08);
+    border-color: var(--border-hover);
+  }
+  .btn-remove:hover svg { stroke: var(--text); }
+
+  .empty {
+    text-align: center; padding: 48px 16px;
+    color: var(--text-faint);
+  }
+  .empty svg {
+    width: 32px; height: 32px;
+    stroke: var(--text-faint); fill: none;
+    stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round;
+    margin-bottom: 12px; opacity: 0.6;
+  }
+  .empty p { font-size: 0.88rem; }
+
+  /* ==================== DIALOGS ==================== */
+  .dialog-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 200;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background: rgba(0,0,0,0.55);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s var(--ease-smooth);
+  }
+  .dialog-backdrop.open { opacity: 1; pointer-events: auto; }
+
+  .dialog {
+    width: 100%;
+    max-width: 340px;
+    padding: 24px;
+    background: rgba(22,22,22,0.96);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 20px;
+    box-shadow:
+      0 1px 0 rgba(255,255,255,0.06) inset,
+      0 30px 80px rgba(0,0,0,0.8);
+    transform: scale(0.92) translateY(8px);
+    transition: transform 0.5s var(--ease-out-expo);
+  }
+  .dialog-backdrop.open .dialog { transform: scale(1) translateY(0); }
+
+  .dialog h3 {
+    font-size: 1.05rem;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    margin-bottom: 6px;
+  }
+  .dialog p {
+    font-size: 0.82rem;
+    color: var(--text-dim);
+    margin-bottom: 18px;
+    line-height: 1.4;
+  }
+
+  .dialog input {
+    width: 100%;
+    padding: 13px 14px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background: var(--bg);
+    color: var(--text);
+    font-size: 0.95rem;
+    font-family: inherit;
+    outline: none;
+    margin-bottom: 20px;
+    transition: border-color 0.3s var(--ease-smooth), background 0.3s var(--ease-smooth);
+  }
+  .dialog input:focus { border-color: var(--border-hover); background: var(--surface); }
+
+  .dialog-actions {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+  }
+  .dialog-actions button {
+    padding: 10px 18px;
+    border-radius: 10px;
+    border: 1px solid transparent;
+    font-family: inherit;
+    font-size: 0.88rem;
+    font-weight: 600;
+    cursor: pointer;
+    letter-spacing: -0.005em;
+    transition: background 0.25s var(--ease-smooth), color 0.25s var(--ease-smooth),
+                border-color 0.25s var(--ease-smooth), transform 0.2s var(--ease-spring);
+  }
+  .dialog-actions button:active { transform: scale(0.96); }
+
+  .btn-cancel {
+    background: transparent;
+    color: var(--text-dim);
+    border-color: var(--border);
+  }
+  .btn-cancel:hover { color: var(--text); border-color: var(--border-hover); background: rgba(255,255,255,0.04); }
+
+  .btn-confirm {
+    background: var(--text);
+    color: var(--bg);
+  }
+  .btn-confirm:hover { opacity: 0.9; }
+
+  /* ==================== PIX MODAL ==================== */
+  .pix-dialog {
+    max-width: 380px;
+    padding: 28px 24px 22px;
+    text-align: center;
+  }
+
+  .pix-icon {
+    width: 52px; height: 52px;
+    margin: 0 auto 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 14px;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.08);
+  }
+  .pix-icon svg {
+    width: 24px; height: 24px;
+    stroke: var(--text); fill: none;
+    stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round;
+  }
+
+  .pix-dialog h3 {
+    font-size: 1.15rem;
+    margin-bottom: 6px;
+    letter-spacing: -0.025em;
+  }
+  .pix-dialog > p {
+    font-size: 0.84rem;
+    color: var(--text-dim);
+    margin-bottom: 20px;
+    line-height: 1.45;
+  }
+
+  .qr-container {
+    width: 200px;
+    height: 200px;
+    margin: 0 auto 18px;
+    padding: 10px;
+    background: #fff;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+  }
+  .qr-container img {
+    width: 100%;
+    height: 100%;
+    display: block;
+    border-radius: 8px;
+    object-fit: contain;
+  }
+
+  .pix-key-box {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 10px 10px 14px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 12px;
+    margin-bottom: 16px;
+    text-align: left;
+  }
+  .pix-key-info { flex: 1; min-width: 0; }
+  .pix-key-label {
+    display: block;
+    font-size: 0.66rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-faint);
+    margin-bottom: 2px;
+  }
+  .pix-key-value {
+    display: block;
+    font-size: 0.86rem;
+    color: var(--text);
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    letter-spacing: -0.005em;
+  }
+  .pix-key-copy {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 12px;
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    background: transparent;
+    color: var(--text-dim);
+    font-family: inherit;
+    font-size: 0.78rem;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: color 0.25s var(--ease-smooth), background 0.25s var(--ease-smooth),
+                border-color 0.25s var(--ease-smooth), transform 0.2s var(--ease-spring);
+  }
+  .pix-key-copy svg {
+    width: 13px; height: 13px;
+    stroke: currentColor; fill: none;
+    stroke-width: 2.1; stroke-linecap: round; stroke-linejoin: round;
+  }
+  .pix-key-copy:hover {
+    color: var(--text);
+    background: rgba(255,255,255,0.06);
+    border-color: var(--border-hover);
+  }
+  .pix-key-copy:active { transform: scale(0.96); }
+  .pix-key-copy.success {
+    color: var(--text);
+    border-color: var(--border-hover);
+    background: rgba(255,255,255,0.1);
+  }
+
+  .pix-close {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: transparent;
+    color: var(--text);
+    font-family: inherit;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    letter-spacing: -0.005em;
+    transition: background 0.25s var(--ease-smooth), border-color 0.25s var(--ease-smooth),
+                transform 0.2s var(--ease-spring);
+  }
+  .pix-close:hover { background: rgba(255,255,255,0.05); border-color: var(--border-hover); }
+  .pix-close:active { transform: scale(0.98); }
+
+  /* ==================== TOAST (acima da hotbar) ==================== */
+  .toast {
+    position: fixed;
+    left: 50%;
+    bottom: 108px;
+    transform: translate(-50%, 24px) scale(0.88);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 20px;
+    background: rgba(255,255,255,0.96);
+    color: #000;
+    border-radius: 14px;
+    font-size: 0.86rem;
+    font-weight: 600;
+    letter-spacing: -0.005em;
+    box-shadow:
+      0 12px 40px rgba(0,0,0,0.6),
+      0 2px 8px rgba(0,0,0,0.35),
+      0 0 0 1px rgba(255,255,255,0.08);
+    opacity: 0;
+    transition:
+      transform 0.65s var(--ease-out-expo),
+      opacity 0.4s var(--ease-smooth),
+      bottom 0.4s var(--ease-smooth);
+    z-index: 100;
+    pointer-events: none;
+  }
+  .toast svg {
+    width: 16px; height: 16px;
+    stroke: #000; fill: none;
+    stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round;
+  }
+  .toast.show {
+    transform: translate(-50%, 0) scale(1);
+    opacity: 1;
+    animation: toastPop 0.65s var(--ease-spring);
+  }
+
+  @keyframes toastPop {
+    0%   { transform: translate(-50%, 0) scale(1); }
+    40%  { transform: translate(-50%, -4px) scale(1.04); }
+    100% { transform: translate(-50%, 0) scale(1); }
+  }
+
+  /* ==================== ANIMAÇÕES ==================== */
+  @keyframes fadeDown {
+    from { opacity: 0; transform: translateY(-12px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes rowIn {
+    from { opacity: 0; transform: translateX(-10px); }
+    to   { opacity: 1; transform: translateX(0); }
+  }
+
+  tbody tr:nth-child(1)  { animation-delay: 0.20s; }
+  tbody tr:nth-child(2)  { animation-delay: 0.24s; }
+  tbody tr:nth-child(3)  { animation-delay: 0.28s; }
+  tbody tr:nth-child(4)  { animation-delay: 0.32s; }
+  tbody tr:nth-child(5)  { animation-delay: 0.36s; }
+  tbody tr:nth-child(6)  { animation-delay: 0.40s; }
+  tbody tr:nth-child(7)  { animation-delay: 0.44s; }
+  tbody tr:nth-child(8)  { animation-delay: 0.48s; }
+  tbody tr:nth-child(n+9){ animation-delay: 0.52s; }
+
+  @media (max-width: 460px) {
+    .hb-btn { padding: 0 10px; }
+    .hb-btn:hover { padding: 0 12px; gap: 6px; }
+    .hb-btn:hover .hb-label { max-width: 70px; }
+    .hotbar { gap: 2px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ==================== TOPBAR ==================== -->
+<header class="topbar">
+  <div class="topbar-brand">
+    <div class="brand-icon">
+      <svg viewBox="0 0 24 24">
+        <path d="M8 21h8M12 17v4M17 4H7v6a5 5 0 0 0 10 0V4z"/>
+        <path d="M17 5h3a2 2 0 0 1 0 4h-1M7 5H4a2 2 0 0 0 0 4h1"/>
+      </svg>
+    </div>
+    <div class="brand-text">Capimm<span>Rank</span></div>
+  </div>
+</header>
+
+<!-- ==================== CONTAINER ==================== -->
+<main class="container">
+
+  <form class="form" id="form">
+    <div class="input-wrap">
+      <svg viewBox="0 0 24 24">
+        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+        <circle cx="12" cy="7" r="4"/>
+      </svg>
+      <input type="text" id="nome" placeholder="Nome do jogador" required maxlength="24">
+    </div>
+    <div class="input-wrap">
+      <svg viewBox="0 0 24 24">
+        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+      </svg>
+      <input type="number" id="pontos" placeholder="Pts" min="0" max="999" required>
+    </div>
+    <button type="submit" class="btn-add" title="Adicionar">
+      <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+    </button>
+  </form>
+
+  <div class="card" id="card">
+    <table>
+      <thead>
+        <tr>
+          <th class="col-pos">Posição</th>
+          <th class="col-nome">Jogador</th>
+          <th class="col-pts">Pontos</th>
+        </tr>
+      </thead>
+      <tbody id="corpo"></tbody>
+    </table>
+  </div>
+
+</main>
+
+<!-- ==================== DROPDOWN (Salvos) ==================== -->
+<div class="dropdown" id="dropdown">
+  <div class="dropdown-header">
+    <span>Placares salvos</span>
+    <span class="dropdown-count" id="dropdown-count"></span>
+  </div>
+  <div class="dropdown-list" id="dropdown-list"></div>
+  <div class="dropdown-empty" id="dropdown-empty">
+    <svg viewBox="0 0 24 24">
+      <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+    </svg>
+    <div>Nenhum placar salvo ainda.<br>Clique em "Salvar" para guardar o placar atual.</div>
+  </div>
+</div>
+
+<!-- ==================== HOTBAR ==================== -->
+<div class="hotbar-wrap">
+  <nav class="hotbar" role="toolbar" aria-label="Ações">
+
+    <!-- Grupo esquerdo: Doar -->
+    <button class="hb-btn doar" id="btn-doar" title="Apoie o projeto">
+      <span class="hb-icon">
+        <svg class="icon-heart" viewBox="0 0 24 24">
+          <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+        </svg>
+      </span>
+      <span class="hb-label">Doar</span>
+    </button>
+
+    <div class="hb-divider"></div>
+
+    <!-- Grupo central: Salvos, Salvar, Baixar, Copiar -->
+    <button class="hb-btn" id="btn-salvos" title="Placares salvos">
+      <span class="hb-icon">
+        <svg class="icon-folder" viewBox="0 0 24 24">
+          <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+        </svg>
+        <span class="hb-badge hidden" id="badge">0</span>
+      </span>
+      <span class="hb-label">Salvos</span>
+    </button>
+
+    <button class="hb-btn" id="btn-salvar" title="Salvar placar">
+      <span class="hb-icon">
+        <svg class="icon-save" viewBox="0 0 24 24">
+          <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+          <path d="M17 21v-8H7v8M7 3v5h8"/>
+        </svg>
+      </span>
+      <span class="hb-label">Salvar</span>
+    </button>
+
+    <button class="hb-btn" id="btn-foto" title="Baixar imagem">
+      <span class="hb-icon">
+        <svg class="icon-photo" viewBox="0 0 24 24">
+          <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+          <circle cx="12" cy="13" r="4"/>
+        </svg>
+      </span>
+      <span class="hb-label">Baixar</span>
+    </button>
+
+    <button class="hb-btn" id="btn-copiar" title="Copiar imagem">
+      <span class="hb-icon">
+        <svg class="icon-copy" viewBox="0 0 24 24">
+          <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+          <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+        </svg>
+      </span>
+      <span class="hb-label">Copiar</span>
+    </button>
+
+    <div class="hb-divider"></div>
+
+    <!-- Grupo direito: Limpar -->
+    <button class="hb-btn" id="btn-limpar" title="Limpar tabela">
+      <span class="hb-icon">
+        <svg class="icon-trash" viewBox="0 0 24 24">
+          <path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+          <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+          <path d="M10 11v6M14 11v6"/>
+        </svg>
+      </span>
+      <span class="hb-label">Limpar</span>
+    </button>
+
+  </nav>
+</div>
+
+<!-- ==================== DIALOG (nome do placar) ==================== -->
+<div class="dialog-backdrop" id="dialog-backdrop">
+  <div class="dialog">
+    <h3>Salvar placar</h3>
+    <p>Dê um nome para identificar este placar depois.</p>
+    <input type="text" id="dialog-input" maxlength="30" placeholder="Ex: Rodada 5 - Semifinal">
+    <div class="dialog-actions">
+      <button class="btn-cancel" id="dialog-cancel">Cancelar</button>
+      <button class="btn-confirm" id="dialog-confirm">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== PIX MODAL ==================== -->
+<div class="dialog-backdrop" id="pix-backdrop">
+  <div class="dialog pix-dialog">
+    <div class="pix-icon">
+      <svg viewBox="0 0 24 24">
+        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+      </svg>
+    </div>
+    <h3>Apoie o CapimmRank</h3>
+    <p>Escaneie o QR Code abaixo<br>ou copie a chave Pix</p>
+
+    <div class="qr-container">
+      <!-- ✅ QR Code real gerado a partir do link de cobrança do Nubank -->
+      <img
+        src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=https%3A%2F%2Fnubank.com.br%2Fcobrar%2F7c4vss%2F6ab88395-e755-4bbb-9c16-ff01f8317d6e"
+        alt="QR Code Pix - CapimmRank"
+        loading="lazy"
+      >
+    </div>
+
+    <div class="pix-key-box">
+      <div class="pix-key-info">
+        <span class="pix-key-label">Chave Pix (CPF)</span>
+        <span class="pix-key-value" id="pix-key">155.565.029-51</span>
+      </div>
+      <button class="pix-key-copy" id="btn-copy-key" title="Copiar chave">
+        <svg viewBox="0 0 24 24">
+          <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+          <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+        </svg>
+        <span>Copiar</span>
+      </button>
+    </div>
+
+    <button class="pix-close" id="pix-close">Fechar</button>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast">
+  <svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>
+  <span id="toast-text">Salvo</span>
+</div>
+
+<script>
+  const STORAGE_KEY = 'capimmrank-atual';
+  const SAVED_KEY   = 'capimmrank-placares';
+  const $ = (s) => document.querySelector(s);
+
+  let jogadores = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+  let savedPlacares = JSON.parse(localStorage.getItem(SAVED_KEY)) || [];
+
+  const esc = (str) => String(str).replace(/[&<>"']/g, c => (
+    { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]
+  ));
+
+  const persistirAtual = () => localStorage.setItem(STORAGE_KEY, JSON.stringify(jogadores));
+  const persistirSalvos = () => localStorage.setItem(SAVED_KEY, JSON.stringify(savedPlacares));
+
+  /* ==================== ORDENAÇÃO ==================== */
+  function getOrdenados(lista = jogadores) {
+    return [...lista].sort((a, b) => {
+      if (b.pontos !== a.pontos) return b.pontos - a.pontos;
+      return a.nome.localeCompare(b.nome, 'pt-BR');
+    });
+  }
+
+  /* ==================== RENDER TABELA ==================== */
+  function render(animar = true) {
+    const corpo = $('#corpo');
+    const card  = $('#card');
+    const startH = card.offsetHeight;
+
+    if (jogadores.length === 0) {
+      corpo.innerHTML = `
+        <tr>
+          <td colspan="3" class="empty">
+            <svg viewBox="0 0 24 24">
+              <circle cx="12" cy="12" r="9"/>
+              <path d="M12 8v4M12 16h.01"/>
+            </svg>
+            <p>Nenhum jogador cadastrado</p>
+          </td>
+        </tr>`;
+    } else {
+      const ordenados = getOrdenados();
+      let html = '';
+      let posicaoAtual = 1;
+      let pontosAnterior = null;
+
+      ordenados.forEach((j, index) => {
+        if (pontosAnterior !== null && j.pontos < pontosAnterior) posicaoAtual = index + 1;
+        pontosAnterior = j.pontos;
+        const classeTop = posicaoAtual <= 3 ? `top-${posicaoAtual}` : '';
+
+        html += `
+          <tr class="${classeTop}">
+            <td class="col-pos">${posicaoAtual}º</td>
+            <td class="col-nome">
+              ${esc(j.nome)}
+              <button class="btn-remove" data-id="${j.id}" title="Remover">
+                <svg viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg>
+              </button>
+            </td>
+            <td class="col-pts">${j.pontos}</td>
+          </tr>
+        `;
+      });
+
+      corpo.innerHTML = html;
+    }
+
+    if (!animar) return;
+    const endH = card.offsetHeight;
+    if (startH === 0 || startH === endH) return;
+
+    card.style.transition = 'none';
+    card.style.height = startH + 'px';
+    card.style.overflow = 'hidden';
+    void card.offsetHeight;
+
+    requestAnimationFrame(() => {
+      card.style.transition = 'height 0.55s cubic-bezier(0.32, 0.72, 0, 1)';
+      card.style.height = endH + 'px';
+      setTimeout(() => {
+        card.style.transition = '';
+        card.style.height = '';
+        card.style.overflow = '';
+      }, 570);
+    });
+  }
+
+  /* ==================== TOAST ==================== */
+  let toastTimer;
+  function toast(msg) {
+    $('#toast-text').textContent = msg;
+    const el = $('#toast');
+    el.classList.remove('show');
+    void el.offsetHeight;
+    el.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => el.classList.remove('show'), 2100);
+  }
+
+  /* ==================== FORM ==================== */
+  $('#form').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const nome = $('#nome').value.trim();
+    const pontos = parseInt($('#pontos').value, 10);
+    if (!nome) return;
+
+    jogadores.push({
+      id: Date.now().toString(36) + Math.random().toString(36).slice(2, 5),
+      nome, pontos: Math.max(0, pontos || 0)
+    });
+
+    persistirAtual();
+    render();
+    $('#nome').value = '';
+    $('#pontos').value = '';
+    $('#nome').focus();
+  });
+
+  $('#corpo').addEventListener('click', (e) => {
+    const btn = e.target.closest('.btn-remove');
+    if (!btn) return;
+    jogadores = jogadores.filter(j => j.id !== btn.dataset.id);
+    persistirAtual();
+    render();
+  });
+
+  $('#btn-limpar').addEventListener('click', () => {
+    if (!jogadores.length) { toast('A tabela já está vazia'); return; }
+    if (!confirm('Apagar todos os jogadores?')) return;
+    jogadores = [];
+    persistirAtual();
+    render();
+    toast('Tabela limpa');
+  });
+
+  /* ==================== DROPDOWN (Salvos) ==================== */
+  const dropdown = $('#dropdown');
+  const btnSalvos = $('#btn-salvos');
+
+  function toggleDropdown(force) {
+    const open = typeof force === 'boolean' ? force : !dropdown.classList.contains('open');
+    dropdown.classList.toggle('open', open);
+    btnSalvos.classList.toggle('active', open);
+  }
+
+  btnSalvos.addEventListener('click', (e) => {
+    e.stopPropagation();
+    toggleDropdown();
+  });
+
+  document.addEventListener('click', (e) => {
+    if (!dropdown.contains(e.target) && !btnSalvos.contains(e.target)) {
+      toggleDropdown(false);
+    }
+  });
+
+  /* ==================== RENDER DROPDOWN ==================== */
+  function formatarData(ts) {
+    const d = new Date(ts);
+    const hoje = new Date();
+    const ontem = new Date(hoje); ontem.setDate(hoje.getDate() - 1);
+    const isSameDay = (a, b) =>
+      a.getFullYear() === b.getFullYear() &&
+      a.getMonth() === b.getMonth() &&
+      a.getDate() === b.getDate();
+    const hora = d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+    if (isSameDay(d, hoje)) return `Hoje, ${hora}`;
+    if (isSameDay(d, ontem)) return `Ontem, ${hora}`;
+    return d.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' }) + `, ${hora}`;
+  }
+
+  function renderDropdown() {
+    const list = $('#dropdown-list');
+    const empty = $('#dropdown-empty');
+    const count = $('#dropdown-count');
+    const badge = $('#badge');
+
+    const total = savedPlacares.length;
+    if (total > 0) {
+      badge.textContent = total > 99 ? '99+' : total;
+      badge.classList.remove('hidden');
+    } else {
+      badge.classList.add('hidden');
+    }
+
+    count.textContent = total > 0 ? `${total} ${total === 1 ? 'item' : 'itens'}` : '';
+
+    if (total === 0) {
+      list.innerHTML = '';
+      empty.style.display = 'block';
+      return;
+    }
+
+    empty.style.display = 'none';
+
+    list.innerHTML = savedPlacares.map((p, i) => `
+      <div class="placar-item" data-id="${p.id}" style="animation-delay:${0.02 + i * 0.03}s">
+        <div class="placar-item-icon">
+          <svg viewBox="0 0 24 24">
+            <path d="M8 21h8M12 17v4M17 4H7v6a5 5 0 0 0 10 0V4z"/>
+          </svg>
+        </div>
+        <div class="placar-item-info">
+          <div class="placar-item-nome">${esc(p.nome)}</div>
+          <div class="placar-item-meta">${p.jogadores.length} ${p.jogadores.length === 1 ? 'jogador' : 'jogadores'} · ${formatarData(p.criadoEm)}</div>
+        </div>
+        <button class="placar-item-del" data-del="${p.id}" title="Excluir">
+          <svg viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+    `).join('');
+  }
+
+  $('#dropdown-list').addEventListener('click', (e) => {
+    const del = e.target.closest('[data-del]');
+    if (del) {
+      e.stopPropagation();
+      savedPlacares = savedPlacares.filter(p => p.id !== del.dataset.del);
+      persistirSalvos();
+      renderDropdown();
+      toast('Placar excluído');
+      return;
+    }
+    const item = e.target.closest('.placar-item');
+    if (item) carregarPlacar(item.dataset.id);
+  });
+
+  /* ==================== SALVAR / CARREGAR ==================== */
+  function salvarPlacar(nome) {
+    savedPlacares.unshift({
+      id: Date.now().toString(36) + Math.random().toString(36).slice(2, 5),
+      nome,
+      jogadores: JSON.parse(JSON.stringify(jogadores)),
+      criadoEm: Date.now()
+    });
+    persistirSalvos();
+    renderDropdown();
+    toast(`"${nome}" salvo`);
+  }
+
+  function carregarPlacar(id) {
+    const p = savedPlacares.find(x => x.id === id);
+    if (!p) return;
+    if (jogadores.length && !confirm(`Substituir o placar atual por "${p.nome}"?`)) return;
+    jogadores = JSON.parse(JSON.stringify(p.jogadores));
+    persistirAtual();
+    render();
+    toggleDropdown(false);
+    toast(`"${p.nome}" carregado`);
+  }
+
+  /* ==================== DIALOG (nome) ==================== */
+  const dialogBackdrop = $('#dialog-backdrop');
+  const dialogInput = $('#dialog-input');
+
+  function openDialog() {
+    if (!jogadores.length) { toast('Adicione jogadores antes de salvar'); return; }
+    const agora = new Date();
+    dialogInput.value = `Placar ${agora.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })} · ${agora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`;
+    dialogBackdrop.classList.add('open');
+    setTimeout(() => { dialogInput.focus(); dialogInput.select(); }, 250);
+  }
+  function closeDialog() { dialogBackdrop.classList.remove('open'); }
+  function confirmarDialog() {
+    const nome = dialogInput.value.trim() || 'Sem nome';
+    closeDialog();
+    salvarPlacar(nome);
+    const btn = $('#btn-salvar');
+    btn.classList.add('success');
+    setTimeout(() => btn.classList.remove('success'), 800);
+  }
+
+  $('#btn-salvar').addEventListener('click', openDialog);
+  $('#dialog-cancel').addEventListener('click', closeDialog);
+  $('#dialog-confirm').addEventListener('click', confirmarDialog);
+  dialogBackdrop.addEventListener('click', (e) => {
+    if (e.target === dialogBackdrop) closeDialog();
+  });
+  dialogInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') { e.preventDefault(); confirmarDialog(); }
+  });
+
+  /* ==================== PIX MODAL ==================== */
+  const pixBackdrop = $('#pix-backdrop');
+
+  function openPix() {
+    toggleDropdown(false);
+    pixBackdrop.classList.add('open');
+  }
+  function closePix() { pixBackdrop.classList.remove('open'); }
+
+  $('#btn-doar').addEventListener('click', openPix);
+  $('#pix-close').addEventListener('click', closePix);
+  pixBackdrop.addEventListener('click', (e) => {
+    if (e.target === pixBackdrop) closePix();
+  });
+
+  $('#btn-copy-key').addEventListener('click', async () => {
+    const key = $('#pix-key').textContent.trim();
+    const btn = $('#btn-copy-key');
+    try {
+      await navigator.clipboard.writeText(key);
+      btn.classList.add('success');
+      const label = btn.querySelector('span');
+      const original = label.textContent;
+      label.textContent = 'Copiado';
+      toast('Chave Pix copiada');
+      setTimeout(() => {
+        btn.classList.remove('success');
+        label.textContent = original;
+      }, 1400);
+    } catch {
+      toast('Não foi possível copiar');
+    }
+  });
+
+  /* ESC fecha tudo */
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      toggleDropdown(false);
+      closeDialog();
+      closePix();
+    }
+  });
+
+  /* ==================== CANVAS ==================== */
+  function desenharCanvas() {
+    const ordenados = getOrdenados();
+    const W = 520, padX = 36, headerH = 96, colHeadH = 46, rowH = 52, footerH = 46;
+    const H = headerH + colHeadH + ordenados.length * rowH + footerH;
+
+    const scale = 2;
+    const canvas = document.createElement('canvas');
+    canvas.width = W * scale;
+    canvas.height = H * scale;
+    const ctx = canvas.getContext('2d');
+    ctx.scale(scale, scale);
+
+    const FONT = '-apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, Arial, sans-serif';
+
+    ctx.fillStyle = '#000';
+    ctx.fillRect(0, 0, W, H);
+
+    const glow = ctx.createRadialGradient(W / 2, -60, 0, W / 2, -60, 320);
+    glow.addColorStop(0, 'rgba(255,255,255,0.07)');
+    glow.addColorStop(1, 'rgba(255,255,255,0)');
+    ctx.fillStyle = glow;
+    ctx.fillRect(0, 0, W, 200);
+
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = '#fff';
+    ctx.font = `700 26px ${FONT}`;
+    ctx.textAlign = 'left';
+    ctx.fillText('Capimm', padX, 48);
+    const w1 = ctx.measureText('Capimm').width;
+    ctx.fillStyle = '#8a8a8a';
+    ctx.font = `400 26px ${FONT}`;
+    ctx.fillText('Rank', padX + w1, 48);
+
+    ctx.fillStyle = '#6a6a6a';
+    ctx.font = `500 13px ${FONT}`;
+    ctx.fillText('Classificação geral', padX, 74);
+
+    ctx.strokeStyle = '#1f1f1f';
+    ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(0, headerH); ctx.lineTo(W, headerH); ctx.stroke();
+
+    const colPosX = padX, colNomeX = W / 2, colPtsX = W - padX;
+    ctx.fillStyle = '#8a8a8a';
+    ctx.font = `600 11px ${FONT}`;
+    ctx.textAlign = 'left';   ctx.fillText('POSIÇÃO', colPosX, headerH + colHeadH / 2);
+    ctx.textAlign = 'center'; ctx.fillText('JOGADOR', colNomeX, headerH + colHeadH / 2);
+    ctx.textAlign = 'right';  ctx.fillText('PONTOS',  colPtsX, headerH + colHeadH / 2);
+
+    const colHeadBottom = headerH + colHeadH;
+    ctx.strokeStyle = '#1f1f1f';
+    ctx.beginPath(); ctx.moveTo(0, colHeadBottom); ctx.lineTo(W, colHeadBottom); ctx.stroke();
+
+    let posicaoAtual = 1;
+    let pontosAnterior = null;
+
+    ordenados.forEach((j, index) => {
+      if (pontosAnterior !== null && j.pontos < pontosAnterior) posicaoAtual = index + 1;
+      pontosAnterior = j.pontos;
+
+      const yTop = colHeadBottom + index * rowH;
+      const yMid = yTop + rowH / 2;
+
+      let corPos, corPts;
+      if (posicaoAtual === 1)      { corPos = '#ffffff'; corPts = '#ffffff'; }
+      else if (posicaoAtual === 2) { corPos = '#c8c8c8'; corPts = '#c8c8c8'; }
+      else if (posicaoAtual === 3) { corPos = '#9a9a9a'; corPts = '#9a9a9a'; }
+      else                         { corPos = '#8a8a8a'; corPts = '#ffffff'; }
+
+      ctx.textAlign = 'left';
+      ctx.fillStyle = corPos;
+      ctx.font = `700 15px ${FONT}`;
+      ctx.fillText(`${posicaoAtual}º`, colPosX, yMid);
+
+      ctx.textAlign = 'center';
+      ctx.fillStyle = '#ffffff';
+      ctx.font = `600 15px ${FONT}`;
+      let nome = j.nome;
+      const maxNomeW = W - padX * 2 - 140;
+      while (ctx.measureText(nome).width > maxNomeW && nome.length > 3) nome = nome.slice(0, -1);
+      if (nome !== j.nome) nome = nome.slice(0, -1) + '…';
+      ctx.fillText(nome, colNomeX, yMid);
+
+      ctx.textAlign = 'right';
+      ctx.fillStyle = corPts;
+      ctx.font = `700 15px ${FONT}`;
+      ctx.fillText(String(j.pontos), colPtsX, yMid);
+
+      if (index < ordenados.length - 1) {
+        ctx.strokeStyle = '#1a1a1a';
+        ctx.beginPath();
+        ctx.moveTo(padX, yTop + rowH);
+        ctx.lineTo(W - padX, yTop + rowH);
+        ctx.stroke();
+      }
+    });
+
+    ctx.strokeStyle = '#1f1f1f';
+    ctx.beginPath(); ctx.moveTo(0, H - footerH); ctx.lineTo(W, H - footerH); ctx.stroke();
+
+    ctx.textAlign = 'center';
+    ctx.fillStyle = '#4a4a4a';
+    ctx.font = `500 11px ${FONT}`;
+    ctx.fillText(`Gerado em ${new Date().toLocaleDateString('pt-BR')}`, W / 2, H - footerH / 2);
+
+    return canvas;
+  }
+
+  const canvasParaBlob = (canvas) => new Promise((res, rej) => {
+    canvas.toBlob((b) => b ? res(b) : rej(new Error('blob fail')), 'image/png');
+  });
+
+  $('#btn-foto').addEventListener('click', async () => {
+    if (!jogadores.length) { toast('Nada para exportar'); return; }
+    try {
+      const blob = await canvasParaBlob(desenharCanvas());
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `capimmrank-${Date.now()}.png`;
+      document.body.appendChild(a); a.click(); a.remove();
+      URL.revokeObjectURL(url);
+      toast('Imagem baixada');
+    } catch { toast('Erro ao gerar imagem'); }
+  });
+
+  $('#btn-copiar').addEventListener('click', async () => {
+    if (!jogadores.length) { toast('Nada para copiar'); return; }
+    const btn = $('#btn-copiar');
+    try {
+      const blob = await canvasParaBlob(desenharCanvas());
+      if (!navigator.clipboard || !window.ClipboardItem) {
+        toast('Navegador não suporta cópia');
+        return;
+      }
+      await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
+      btn.classList.add('success');
+      toast('Imagem copiada — cole com Ctrl+V');
+      setTimeout(() => btn.classList.remove('success'), 900);
+    } catch (e) {
+      console.error(e);
+      toast('Não foi possível copiar');
+    }
+  });
+
+  /* ==================== INIT ==================== */
+  render(false);
+  renderDropdown();
+</script>
+</body>
+</html>
