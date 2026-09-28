@@ -1,0 +1,1502 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="color-scheme" content="light">
+<title>QR Code</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;}
+
+  :root{
+    --bg:#fbfbfd;
+    --ink:#1d1d1f;
+    --ink-2:#424245;
+    --ink-3:#6e6e73;
+    --ink-4:#86868b;
+    --line:rgba(0,0,0,.07);
+    --line-2:rgba(0,0,0,.12);
+    --blue:#0071e3;
+    --blue-hover:#0077ed;
+    --green:#34c759;
+    --red:#ff3b30;
+
+    --spring:cubic-bezier(0.16, 1, 0.3, 1);
+    --ease:cubic-bezier(0.4, 0, 0.2, 1);
+    --snappy:cubic-bezier(0.32, 0.72, 0, 1);
+  }
+
+  html{-webkit-text-size-adjust:100%;}
+  html,body{height:100%;}
+
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','SF Pro Text','Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;
+    color:var(--ink);
+    background-color:#fbfbfd;
+    /* Fundo ESTÁTICO — sem filter:blur, sem animação, custo zero de GPU */
+    background-image:
+      radial-gradient(circle at 12% 8%, #dceaff 0%, transparent 42%),
+      radial-gradient(circle at 88% 12%, #ffe6f0 0%, transparent 40%),
+      radial-gradient(circle at 72% 92%, #ddf3e6 0%, transparent 42%);
+    background-attachment:fixed;
+    background-repeat:no-repeat;
+    min-height:100vh;
+    display:grid;
+    place-items:center;
+    padding:40px 20px 160px;
+    overflow-x:hidden;
+    -webkit-font-smoothing:antialiased;
+    -moz-osx-font-smoothing:grayscale;
+    letter-spacing:-0.01em;
+  }
+
+  /* Fallback para navegadores sem background-attachment:fixed */
+  @supports not (background-attachment: fixed){
+    body{background-attachment:scroll;}
+  }
+
+  /* ---------- Card ---------- */
+  .card{
+    position:relative;
+    z-index:1;
+    width:min(560px,100%);
+    padding:44px 40px 40px;
+    border-radius:32px;
+    /* Fundo sólido como base — sempre visível */
+    background:#ffffff;
+    border:1px solid rgba(0,0,0,.06);
+    box-shadow:
+      0 1px 0 rgba(255,255,255,.9) inset,
+      0 20px 60px -20px rgba(0,0,0,.14),
+      0 4px 12px -4px rgba(0,0,0,.05);
+    animation:cardIn 1s var(--spring) both;
+  }
+
+  /* Aplica vidro APENAS se o navegador suportar (evita bugs de driver) */
+  @supports (backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px)){
+    .card{
+      background:rgba(255,255,255,.72);
+      backdrop-filter:blur(30px) saturate(180%);
+      -webkit-backdrop-filter:blur(30px) saturate(180%);
+      border-color:rgba(255,255,255,.85);
+    }
+  }
+
+  @keyframes cardIn{
+    from{opacity:0;transform:translateY(20px) scale(.98);}
+    to{opacity:1;transform:none;}
+  }
+
+  /* ---------- Header ---------- */
+  .eyebrow{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    padding:6px 12px;
+    border-radius:980px;
+    font-size:12px;
+    font-weight:500;
+    color:var(--ink-3);
+    background:rgba(0,0,0,.04);
+    margin-bottom:20px;
+  }
+  .eyebrow .dot{
+    width:6px;height:6px;border-radius:50%;
+    background:var(--green);
+    box-shadow:0 0 0 3px rgba(52,199,89,.18);
+  }
+
+  h1{
+    font-size:clamp(28px,5.4vw,34px);
+    font-weight:600;
+    letter-spacing:-0.025em;
+    line-height:1.1;
+    color:var(--ink);
+  }
+
+  .subtitle{
+    margin-top:10px;
+    font-size:15px;
+    line-height:1.5;
+    color:var(--ink-3);
+  }
+
+  /* ---------- Campo ---------- */
+  .field{
+    display:flex;
+    gap:10px;
+    margin-top:28px;
+  }
+
+  .input{
+    flex:1;
+    min-width:0;
+    padding:15px 18px;
+    font:inherit;
+    font-size:15px;
+    color:var(--ink);
+    background:#ffffff;
+    border:1px solid var(--line-2);
+    border-radius:14px;
+    outline:none;
+    transition:border-color .3s var(--ease), box-shadow .3s var(--ease);
+  }
+  .input::placeholder{color:#a1a1a6;}
+  .input:hover{border-color:rgba(0,0,0,.18);}
+  .input:focus{
+    border-color:var(--blue);
+    box-shadow:0 0 0 4px rgba(0,113,227,.15);
+  }
+  .input.shake{
+    animation:shake .5s var(--spring);
+    border-color:var(--red);
+    box-shadow:0 0 0 4px rgba(255,59,48,.12);
+  }
+  @keyframes shake{
+    0%,100%{transform:translateX(0);}
+    20%{transform:translateX(-6px);}
+    40%{transform:translateX(6px);}
+    60%{transform:translateX(-4px);}
+    80%{transform:translateX(4px);}
+  }
+
+  /* ---------- Botões ---------- */
+  .btn{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    gap:7px;
+    font:inherit;
+    font-size:14.5px;
+    font-weight:500;
+    letter-spacing:-0.01em;
+    border:0;
+    border-radius:14px;
+    padding:15px 20px;
+    cursor:pointer;
+    white-space:nowrap;
+    -webkit-tap-highlight-color:transparent;
+    transition:transform .35s var(--snappy), background .3s var(--ease), box-shadow .35s var(--ease), border-color .3s var(--ease), color .3s var(--ease), opacity .3s var(--ease);
+  }
+  .btn svg{flex-shrink:0;transition:transform .4s var(--snappy);}
+
+  .btn:focus-visible{
+    outline:none;
+    box-shadow:0 0 0 4px rgba(0,113,227,.3);
+  }
+
+  .btn-primary{
+    color:#fff;
+    background:var(--blue);
+    box-shadow:0 1px 0 rgba(255,255,255,.2) inset, 0 6px 16px -6px rgba(0,113,227,.5);
+  }
+  .btn-primary:hover{background:var(--blue-hover);transform:translateY(-1px);}
+  .btn-primary:active{transform:scale(.97);transition-duration:.1s;}
+
+  .btn-secondary{
+    flex:1;
+    color:var(--ink);
+    background:#ffffff;
+    border:1px solid var(--line-2);
+    box-shadow:0 1px 0 rgba(255,255,255,.9) inset, 0 2px 6px -2px rgba(0,0,0,.06);
+  }
+  .btn-secondary:hover{
+    border-color:rgba(0,0,0,.18);
+    transform:translateY(-1px);
+  }
+  .btn-secondary:hover svg{transform:scale(1.08);}
+  .btn-secondary:active{transform:scale(.97);transition-duration:.1s;}
+
+  /* ---------- Resultado ---------- */
+  .result{
+    display:grid;
+    grid-template-rows:0fr;
+    opacity:0;
+    transition:grid-template-rows .7s var(--spring), opacity .5s var(--ease), margin-top .7s var(--spring);
+  }
+  .result.show{
+    grid-template-rows:1fr;
+    opacity:1;
+    margin-top:24px;
+  }
+  .result-inner{overflow:hidden;}
+
+  .qr-box{
+    display:flex;
+    justify-content:center;
+    padding:22px;
+    border-radius:22px;
+    background:#ffffff;
+    border:1px solid var(--line);
+    box-shadow:0 4px 14px -6px rgba(0,0,0,.06);
+    position:relative;
+    transition:box-shadow .35s var(--ease), border-color .35s var(--ease);
+  }
+  .qr-box:hover{
+    border-color:rgba(0,113,227,.25);
+    box-shadow:0 8px 24px -8px rgba(0,113,227,.18);
+  }
+  .qr-box.animate{animation:qrPop .8s var(--spring);}
+  @keyframes qrPop{
+    from{opacity:0;transform:scale(.9);}
+    to{opacity:1;transform:none;}
+  }
+
+  #qrTarget{width:260px;max-width:100%;height:auto!important;}
+  #qrTarget canvas,
+  #qrTarget img{
+    width:100%!important;
+    height:auto!important;
+    display:block;
+    border-radius:8px;
+    cursor:copy;
+    -webkit-user-drag:element;
+  }
+
+  .qr-hint{
+    position:absolute;
+    bottom:-8px;
+    left:50%;
+    transform:translateX(-50%) translateY(4px);
+    padding:4px 10px;
+    border-radius:980px;
+    font-size:11px;
+    font-weight:500;
+    color:#fff;
+    background:#1c1c1e;
+    opacity:0;
+    pointer-events:none;
+    transition:opacity .3s var(--ease), transform .4s var(--spring);
+    white-space:nowrap;
+  }
+  .qr-box:hover .qr-hint{
+    opacity:1;
+    transform:translateX(-50%) translateY(0);
+  }
+
+  .actions{
+    display:flex;
+    gap:10px;
+    margin-top:14px;
+  }
+
+  .shortcut-hint{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+    margin-top:14px;
+    font-size:12px;
+    color:var(--ink-4);
+    flex-wrap:wrap;
+  }
+  .shortcut-hint span{display:inline-flex;align-items:center;gap:5px;}
+
+  kbd{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    min-width:20px;
+    height:20px;
+    padding:0 5px;
+    font-family:inherit;
+    font-size:10.5px;
+    font-weight:600;
+    color:var(--ink-2);
+    background:#ffffff;
+    border:1px solid var(--line-2);
+    border-bottom-width:2px;
+    border-radius:5px;
+  }
+
+  .footnote{
+    margin-top:24px;
+    text-align:center;
+    font-size:12.5px;
+    color:var(--ink-4);
+    line-height:1.5;
+  }
+
+  /* ---------- Dockbar ---------- */
+  .dockbar{
+    position:fixed;
+    bottom:26px;
+    left:50%;
+    transform:translateX(-50%);
+    z-index:40;
+    animation:dockIn 1s var(--spring) .25s both;
+  }
+  @keyframes dockIn{
+    from{opacity:0;transform:translate(-50%,24px);}
+    to{opacity:1;transform:translate(-50%,0);}
+  }
+
+  .dock-inner{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    padding:8px 8px 8px 14px;
+    border-radius:22px;
+    background:#ffffff;
+    border:1px solid rgba(0,0,0,.06);
+    box-shadow:
+      0 1px 0 rgba(255,255,255,.9) inset,
+      0 16px 40px -16px rgba(0,0,0,.16);
+  }
+
+  @supports (backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px)){
+    .dock-inner{
+      background:rgba(255,255,255,.72);
+      backdrop-filter:blur(30px) saturate(180%);
+      -webkit-backdrop-filter:blur(30px) saturate(180%);
+      border-color:rgba(255,255,255,.85);
+    }
+  }
+
+  .plan-chip{
+    display:inline-flex;
+    align-items:center;
+    gap:7px;
+    padding:8px 13px;
+    border-radius:12px;
+    font-size:12.5px;
+    font-weight:500;
+    color:var(--ink-3);
+    background:rgba(0,0,0,.04);
+    transition:color .4s var(--ease), background .4s var(--ease);
+    white-space:nowrap;
+  }
+  .plan-chip .plan-dot{
+    width:6px;height:6px;border-radius:50%;
+    background:#c7c7cc;
+    transition:background .4s var(--ease), box-shadow .4s var(--ease);
+  }
+  .plan-chip.active{
+    color:#1c7a3f;
+    background:rgba(52,199,89,.12);
+  }
+  .plan-chip.active .plan-dot{
+    background:var(--green);
+    box-shadow:0 0 0 3px rgba(52,199,89,.2);
+  }
+
+  .dock-btn-plus{
+    display:inline-flex;
+    align-items:center;
+    gap:7px;
+    padding:10px 16px;
+    font:inherit;
+    font-size:13.5px;
+    font-weight:500;
+    letter-spacing:-0.01em;
+    color:#fff;
+    border:0;
+    border-radius:14px;
+    cursor:pointer;
+    background:var(--ink);
+    box-shadow:0 1px 0 rgba(255,255,255,.15) inset, 0 6px 16px -6px rgba(0,0,0,.35);
+    transition:transform .35s var(--snappy), background .3s var(--ease), box-shadow .3s var(--ease);
+    -webkit-tap-highlight-color:transparent;
+    white-space:nowrap;
+  }
+  .dock-btn-plus:hover{background:#2d2d2f;transform:translateY(-1px);}
+  .dock-btn-plus:active{transform:scale(.97);transition-duration:.1s;}
+  .dock-btn-plus:focus-visible{outline:none;box-shadow:0 0 0 4px rgba(0,0,0,.2);}
+  .dock-btn-plus.active{
+    background:var(--green);
+    box-shadow:0 1px 0 rgba(255,255,255,.2) inset, 0 6px 16px -6px rgba(52,199,89,.5);
+    cursor:default;
+  }
+
+  /* ---------- Overlays ---------- */
+  .overlay{
+    position:fixed;
+    inset:0;
+    z-index:50;
+    display:grid;
+    place-items:center;
+    padding:24px;
+    background:rgba(0,0,0,.32);
+    opacity:0;
+    visibility:hidden;
+    transition:opacity .5s var(--ease), visibility 0s linear .5s;
+  }
+  @supports (backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px)){
+    .overlay{
+      background:rgba(0,0,0,.28);
+      backdrop-filter:blur(16px) saturate(160%);
+      -webkit-backdrop-filter:blur(16px) saturate(160%);
+    }
+  }
+  .overlay.show{
+    opacity:1;
+    visibility:visible;
+    transition:opacity .5s var(--ease), visibility 0s;
+  }
+
+  .modal{
+    width:min(400px,100%);
+    padding:32px 28px 26px;
+    border-radius:28px;
+    background:#ffffff;
+    border:1px solid rgba(0,0,0,.05);
+    box-shadow:
+      0 1px 0 rgba(255,255,255,.9) inset,
+      0 40px 80px -30px rgba(0,0,0,.35);
+    transform:translateY(14px) scale(.96);
+    opacity:0;
+    transition:transform .6s var(--spring), opacity .4s var(--ease);
+  }
+  .overlay.show .modal{
+    transform:none;
+    opacity:1;
+  }
+
+  .ad-label{
+    display:inline-flex;
+    align-items:center;
+    gap:5px;
+    padding:5px 10px;
+    font-size:10.5px;
+    font-weight:600;
+    letter-spacing:.6px;
+    text-transform:uppercase;
+    color:var(--ink-4);
+    background:rgba(0,0,0,.05);
+    border-radius:7px;
+    margin-bottom:18px;
+  }
+  .ad-label::before{
+    content:'';
+    width:4px;height:4px;border-radius:50%;
+    background:#c7c7cc;
+  }
+
+  .ad-card{
+    padding:24px;
+    border-radius:20px;
+    background:linear-gradient(150deg,var(--ad-c1,#0071e3),var(--ad-c2,#40a9ff));
+    color:#fff;
+    position:relative;
+    overflow:hidden;
+    transition:background .6s var(--ease);
+  }
+  .ad-emoji{
+    font-size:32px;
+    line-height:1;
+    margin-bottom:14px;
+    display:block;
+  }
+  .ad-title{
+    font-size:17.5px;
+    font-weight:600;
+    letter-spacing:-0.02em;
+    margin-bottom:6px;
+  }
+  .ad-text{
+    font-size:13.5px;
+    line-height:1.5;
+    opacity:.9;
+    margin-bottom:18px;
+  }
+  .ad-cta{
+    display:inline-block;
+    padding:9px 16px;
+    font-size:13px;
+    font-weight:500;
+    color:var(--ad-c1);
+    background:#fff;
+    border-radius:10px;
+    text-decoration:none;
+    transition:transform .3s var(--snappy);
+  }
+  .ad-cta:hover{transform:scale(1.03);}
+
+  .countdown{
+    display:flex;
+    align-items:center;
+    gap:14px;
+    margin-top:22px;
+    padding-top:20px;
+    border-top:1px solid var(--line);
+  }
+  .ring-wrap{
+    position:relative;
+    width:44px;height:44px;
+    flex-shrink:0;
+  }
+  .ring-wrap svg{
+    transform:rotate(-90deg);
+    width:100%;height:100%;
+  }
+  .ring-bg{fill:none;stroke:rgba(0,0,0,.08);stroke-width:3;}
+  .ring-fill{
+    fill:none;
+    stroke:var(--blue);
+    stroke-width:3;
+    stroke-linecap:round;
+    stroke-dasharray:113.1;
+    stroke-dashoffset:0;
+  }
+  .countdown-num{
+    position:absolute;
+    inset:0;
+    display:grid;
+    place-items:center;
+    font-size:14px;
+    font-weight:600;
+    color:var(--ink);
+    font-variant-numeric:tabular-nums;
+  }
+  .countdown-text{
+    font-size:13.5px;
+    color:var(--ink-3);
+    line-height:1.4;
+  }
+
+  .plus-head{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    margin-bottom:4px;
+  }
+  .plus-icon{
+    width:44px;height:44px;
+    display:grid;
+    place-items:center;
+    border-radius:12px;
+    background:var(--ink);
+    color:#fff;
+    flex-shrink:0;
+    box-shadow:0 4px 12px -4px rgba(0,0,0,.3);
+  }
+  .plus-title{
+    font-size:20px;
+    font-weight:600;
+    letter-spacing:-0.025em;
+    color:var(--ink);
+  }
+  .plus-sub{
+    font-size:13px;
+    color:var(--ink-3);
+    margin-top:1px;
+  }
+
+  .plus-list{
+    list-style:none;
+    margin:24px 0;
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+  }
+  .plus-list li{
+    display:flex;
+    align-items:center;
+    gap:11px;
+    font-size:14px;
+    color:var(--ink-2);
+  }
+  .plus-list li .check{
+    width:20px;height:20px;
+    flex-shrink:0;
+    display:grid;
+    place-items:center;
+    border-radius:50%;
+    background:rgba(52,199,89,.15);
+    color:var(--green);
+  }
+
+  .plus-actions{
+    display:flex;
+    gap:10px;
+    margin-top:4px;
+  }
+  .plus-actions .btn-secondary{flex:0 0 auto;padding:14px 18px;}
+  .plus-actions .btn-primary{flex:1;}
+
+  .plus-status{
+    margin-top:16px;
+    padding:12px 14px;
+    border-radius:12px;
+    font-size:12.5px;
+    line-height:1.5;
+    color:#1c7a3f;
+    background:rgba(52,199,89,.1);
+    border:1px solid rgba(52,199,89,.2);
+    display:none;
+  }
+  .plus-status.show{display:block;animation:fadeUp .5s var(--spring);}
+  @keyframes fadeUp{
+    from{opacity:0;transform:translateY(6px);}
+    to{opacity:1;transform:none;}
+  }
+  .plus-status code{
+    font-family:ui-monospace,'SF Mono',Menlo,monospace;
+    font-size:11.5px;
+    background:rgba(255,255,255,.7);
+    padding:1px 6px;
+    border-radius:5px;
+  }
+
+  .activating{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+  }
+  .spinner{
+    width:14px;height:14px;
+    border-radius:50%;
+    border:2px solid rgba(255,255,255,.35);
+    border-top-color:#fff;
+    animation:spin .7s linear infinite;
+  }
+  @keyframes spin{to{transform:rotate(360deg);}}
+
+  /* ---------- Toast ---------- */
+  .toast{
+    position:fixed;
+    left:50%;
+    bottom:120px;
+    z-index:60;
+    padding:13px 22px;
+    border-radius:980px;
+    font-size:13.5px;
+    font-weight:500;
+    color:#fff;
+    background:rgba(28,28,30,.94);
+    box-shadow:0 20px 44px -18px rgba(0,0,0,.5);
+    transform:translate(-50%,120%) scale(.9);
+    opacity:0;
+    pointer-events:none;
+    transition:transform .55s var(--spring), opacity .35s var(--ease);
+    max-width:calc(100vw - 40px);
+    text-align:center;
+  }
+  .toast.show{transform:translate(-50%,0) scale(1);opacity:1;}
+  .toast.error{background:rgba(255,59,48,.95);}
+
+  /* ---------- Context Menu ---------- */
+  .ctx-menu{
+    position:fixed;
+    z-index:70;
+    min-width:200px;
+    padding:5px;
+    border-radius:12px;
+    background:rgba(255,255,255,.96);
+    border:1px solid rgba(0,0,0,.06);
+    box-shadow:
+      0 1px 0 rgba(255,255,255,.9) inset,
+      0 20px 40px -12px rgba(0,0,0,.28);
+    opacity:0;
+    visibility:hidden;
+    transform:scale(.94) translateY(-4px);
+    transform-origin:top left;
+    transition:opacity .18s var(--ease), transform .25s var(--spring), visibility 0s linear .25s;
+    -webkit-user-select:none;
+    user-select:none;
+  }
+  .ctx-menu.show{
+    opacity:1;
+    visibility:visible;
+    transform:scale(1) translateY(0);
+    transition:opacity .18s var(--ease), transform .25s var(--spring), visibility 0s;
+  }
+
+  .ctx-item{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    width:100%;
+    padding:8px 10px;
+    font:inherit;
+    font-size:13.5px;
+    color:var(--ink);
+    background:transparent;
+    border:0;
+    border-radius:8px;
+    cursor:pointer;
+    text-align:left;
+    transition:background .12s var(--ease), color .12s var(--ease);
+  }
+  .ctx-item:hover{background:var(--blue);color:#fff;}
+  .ctx-item:hover svg{color:#fff;}
+  .ctx-item svg{color:var(--ink-2);flex-shrink:0;transition:color .12s var(--ease);}
+
+  .ctx-sep{
+    height:1px;
+    margin:5px 8px;
+    background:var(--line);
+  }
+
+  .ctx-item .kbd-inline{
+    margin-left:auto;
+    font-size:11px;
+    color:var(--ink-4);
+    letter-spacing:0.02em;
+  }
+  .ctx-item:hover .kbd-inline{color:rgba(255,255,255,.85);}
+
+  /* ---------- Responsivo ---------- */
+  @media (max-width:560px){
+    body{padding:24px 16px 150px;}
+    .card{padding:32px 24px 28px;border-radius:26px;}
+    .field{flex-direction:column;}
+    .btn-primary{width:100%;}
+    .actions{flex-direction:column;}
+    #qrTarget{width:220px;}
+    .dock-inner{padding:7px 7px 7px 12px;}
+    .plan-chip{padding:7px 10px;font-size:11.5px;}
+    .dock-btn-plus{padding:9px 13px;font-size:12.5px;}
+    .shortcut-hint{display:none;}
+    .qr-hint{display:none;}
+  }
+
+  @media (prefers-reduced-motion:reduce){
+    *,*::before,*::after{
+      animation-duration:.01ms!important;
+      animation-iteration-count:1!important;
+      transition-duration:.01ms!important;
+    }
+  }
+</style>
+</head>
+<body>
+
+  <main class="card">
+    <div class="eyebrow"><span class="dot"></span> Geração no dispositivo</div>
+
+    <h1>QR Code.</h1>
+    <p class="subtitle">Cole um link e gere o QR Code na hora. Sem contas, sem rastros.</p>
+
+    <div class="field">
+      <input
+        id="link"
+        class="input"
+        type="text"
+        placeholder="https://exemplo.com"
+        autocomplete="off"
+        autocapitalize="off"
+        spellcheck="false"
+        aria-label="Link para gerar o QR Code"
+      >
+      <button class="btn btn-primary" id="generateBtn" title="Gerar QR Code (Enter)">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1"/>
+        </svg>
+        Gerar
+      </button>
+    </div>
+
+    <div class="result" id="result">
+      <div class="result-inner">
+        <div class="qr-box" id="qrBox">
+          <div id="qrTarget"></div>
+          <div class="qr-hint">Clique com o botão direito para mais opções</div>
+        </div>
+
+        <div class="actions">
+          <button class="btn btn-secondary" id="copyBtn" title="Copiar imagem (Ctrl+C)">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="9" y="9" width="12" height="12" rx="2.5"/>
+              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+            </svg>
+            Copiar imagem
+          </button>
+
+          <button class="btn btn-secondary" id="downloadBtn" title="Baixar imagem (Ctrl+S)">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+              <polyline points="7 10 12 15 17 10"/>
+              <line x1="12" y1="15" x2="12" y2="3"/>
+            </svg>
+            Baixar imagem
+          </button>
+        </div>
+
+        <div class="shortcut-hint">
+          <span><kbd>Ctrl</kbd><kbd>C</kbd> copiar</span>
+          <span><kbd>Ctrl</kbd><kbd>S</kbd> baixar</span>
+          <span><kbd>Ctrl</kbd><kbd>V</kbd> colar link</span>
+        </div>
+      </div>
+    </div>
+
+    <p class="footnote">Tudo processado localmente no seu navegador.</p>
+  </main>
+
+  <nav class="dockbar" aria-label="Planos">
+    <div class="dock-inner">
+      <div class="plan-chip" id="planChip">
+        <span class="plan-dot"></span>
+        <span id="planLabel">Free</span>
+      </div>
+
+      <button class="dock-btn-plus" id="plusBtn">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 2l2.6 7.4H22l-6.2 4.6 2.4 7.4L12 16.9 5.8 21.4l2.4-7.4L2 9.4h7.4z"/>
+        </svg>
+        <span id="plusBtnLabel">Plus</span>
+      </button>
+    </div>
+  </nav>
+
+  <div class="overlay" id="adOverlay" role="dialog" aria-modal="true" aria-label="Anúncio">
+    <div class="modal">
+      <div class="ad-label">Anúncio</div>
+
+      <div class="ad-card" id="adCard">
+        <span class="ad-emoji" id="adEmoji">🚀</span>
+        <div class="ad-title" id="adTitle">Curso Full Stack</div>
+        <div class="ad-text" id="adText">Do zero ao profissional em 6 meses com projetos reais.</div>
+        <a class="ad-cta" id="adCta" href="#" onclick="return false;">Saiba mais</a>
+      </div>
+
+      <div class="countdown">
+        <div class="ring-wrap">
+          <svg viewBox="0 0 44 44">
+            <circle class="ring-bg" cx="22" cy="22" r="18"/>
+            <circle class="ring-fill" id="ringFill" cx="22" cy="22" r="18"/>
+          </svg>
+          <div class="countdown-num" id="countdownNum">5</div>
+        </div>
+        <div class="countdown-text" id="countdownText">Preparando seu QR Code…</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="overlay" id="plusOverlay" role="dialog" aria-modal="true" aria-label="Plano Plus">
+    <div class="modal">
+      <div class="plus-head">
+        <div class="plus-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 2l2.6 7.4H22l-6.2 4.6 2.4 7.4L12 16.9 5.8 21.4l2.4-7.4L2 9.4h7.4z"/>
+          </svg>
+        </div>
+        <div>
+          <div class="plus-title">Plano Plus</div>
+          <div class="plus-sub">Geração instantânea</div>
+        </div>
+      </div>
+
+      <ul class="plus-list">
+        <li><span class="check">✓</span> Sem anúncios nem espera</li>
+        <li><span class="check">✓</span> QR Code gerado instantaneamente</li>
+        <li><span class="check">✓</span> Ativação pelo IP, sem login</li>
+        <li><span class="check">✓</span> Liberado neste dispositivo</li>
+      </ul>
+
+      <div class="plus-actions">
+        <button class="btn btn-secondary" id="closePlusBtn">Agora não</button>
+        <button class="btn btn-primary" id="activatePlusBtn">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 2l2.6 7.4H22l-6.2 4.6 2.4 7.4L12 16.9 5.8 21.4l2.4-7.4L2 9.4h7.4z"/>
+          </svg>
+          Ativar Plus
+        </button>
+      </div>
+
+      <div class="plus-status" id="plusStatus"></div>
+    </div>
+  </div>
+
+  <div class="ctx-menu" id="ctxMenu" role="menu" aria-hidden="true">
+    <button class="ctx-item" id="ctxCopy" role="menuitem">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="9" y="9" width="12" height="12" rx="2.5"/>
+        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+      </svg>
+      Copiar imagem
+      <span class="kbd-inline">Ctrl C</span>
+    </button>
+
+    <button class="ctx-item" id="ctxDownload" role="menuitem">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+        <polyline points="7 10 12 15 17 10"/>
+        <line x1="12" y1="15" x2="12" y2="3"/>
+      </svg>
+      Baixar imagem
+      <span class="kbd-inline">Ctrl S</span>
+    </button>
+
+    <div class="ctx-sep"></div>
+
+    <button class="ctx-item" id="ctxNewTab" role="menuitem">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+        <polyline points="15 3 21 3 21 9"/>
+        <line x1="10" y1="14" x2="21" y2="3"/>
+      </svg>
+      Abrir imagem em nova aba
+    </button>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script>
+  (function(){
+    'use strict';
+
+    const $ = id => document.getElementById(id);
+
+    const input       = $('link');
+    const generateBtn = $('generateBtn');
+    const result      = $('result');
+    const qrTarget    = $('qrTarget');
+    const qrBox       = $('qrBox');
+    const copyBtn     = $('copyBtn');
+    const downloadBtn = $('downloadBtn');
+    const toastEl     = $('toast');
+
+    const adOverlay   = $('adOverlay');
+    const adCard      = $('adCard');
+    const adEmoji     = $('adEmoji');
+    const adTitle     = $('adTitle');
+    const adText      = $('adText');
+    const adCta       = $('adCta');
+    const ringFill    = $('ringFill');
+    const countdownNum= $('countdownNum');
+    const countdownTxt= $('countdownText');
+
+    const plusOverlay = $('plusOverlay');
+    const plusBtn     = $('plusBtn');
+    const plusBtnLabel= $('plusBtnLabel');
+    const closePlusBtn= $('closePlusBtn');
+    const activateBtn = $('activatePlusBtn');
+    const plusStatus  = $('plusStatus');
+
+    const planChip    = $('planChip');
+    const planLabel   = $('planLabel');
+
+    const ctxMenu     = $('ctxMenu');
+    const ctxCopy     = $('ctxCopy');
+    const ctxDownload = $('ctxDownload');
+    const ctxNewTab   = $('ctxNewTab');
+
+    let isPlus = false;
+    let plusIP = null;
+    let toastTimer = null;
+    let hasQR = false;
+    let adRaf = null;
+    let busy = false;
+
+    const STORAGE_KEY = 'qrgen_plus_v2';
+    const WAIT_SECONDS = 5;
+
+    function showToast(msg, type){
+      toastEl.textContent = msg;
+      toastEl.className = 'toast show' + (type === 'error' ? ' error' : '');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => {
+        toastEl.className = 'toast' + (type === 'error' ? ' error' : '');
+      }, 2600);
+    }
+
+    function normalizeUrl(value){
+      const v = (value || '').trim();
+      if (!v) return '';
+      if (/^[a-zA-Z][a-zA-Z\d+\-.]*:\/\//.test(v)) return v;
+      if (/^(mailto:|tel:|sms:)/i.test(v)) return v;
+      return 'https://' + v;
+    }
+
+    function buildExportCanvas(padding){
+      padding = padding || 64;
+      const source = qrTarget.querySelector('canvas');
+      if (!source) return null;
+
+      const size = source.width;
+      const out = document.createElement('canvas');
+      out.width  = size + padding * 2;
+      out.height = size + padding * 2;
+
+      const ctx = out.getContext('2d');
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, out.width, out.height);
+      ctx.imageSmoothingEnabled = false;
+      ctx.drawImage(source, padding, padding, size, size);
+
+      return out;
+    }
+
+    function canvasToBlob(canvas){
+      return new Promise((resolve, reject) => {
+        canvas.toBlob(b => b ? resolve(b) : reject(new Error('toBlob falhou')), 'image/png');
+      });
+    }
+
+    function blobToDataURL(blob){
+      return new Promise((resolve, reject) => {
+        const r = new FileReader();
+        r.onload = () => resolve(r.result);
+        r.onerror = reject;
+        r.readAsDataURL(blob);
+      });
+    }
+
+    function loadPlusState(){
+      try{
+        const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null');
+        if (saved && saved.active){
+          isPlus = true;
+          plusIP = saved.ip || null;
+        }
+      } catch(e){}
+      renderPlanUI();
+    }
+
+    function savePlusState(ip){
+      try{
+        localStorage.setItem(STORAGE_KEY, JSON.stringify({
+          active: true, ip: ip, since: Date.now()
+        }));
+      } catch(e){}
+    }
+
+    function renderPlanUI(){
+      if (isPlus){
+        planChip.classList.add('active');
+        planLabel.textContent = 'Plus ativo';
+        plusBtn.classList.add('active');
+        plusBtnLabel.textContent = 'Plus ativo';
+      } else {
+        planChip.classList.remove('active');
+        planLabel.textContent = 'Free';
+        plusBtn.classList.remove('active');
+        plusBtnLabel.textContent = 'Plus';
+      }
+    }
+
+    async function fetchIP(){
+      const endpoints = [
+        'https://api.ipify.org?format=json',
+        'https://api64.ipify.org?format=json'
+      ];
+      for (const url of endpoints){
+        try{
+          const res = await fetch(url, { cache: 'no-store' });
+          if (!res.ok) continue;
+          const data = await res.json();
+          if (data && data.ip) return data.ip;
+        } catch(e){}
+      }
+      return null;
+    }
+
+    async function activatePlus(){
+      if (isPlus){ showToast('Você já tem o Plus ativo'); return; }
+      activateBtn.disabled = true;
+      activateBtn.style.opacity = '.85';
+      activateBtn.innerHTML = '<span class="activating"><span class="spinner"></span> Verificando…</span>';
+      plusStatus.classList.remove('show');
+
+      const ip = await fetchIP();
+
+      if (!ip){
+        activateBtn.disabled = false;
+        activateBtn.style.opacity = '';
+        activateBtn.innerHTML = 'Ativar Plus';
+        plusStatus.className = 'plus-status show';
+        plusStatus.style.color = '#c1392b';
+        plusStatus.style.background = 'rgba(255,59,48,.1)';
+        plusStatus.style.borderColor = 'rgba(255,59,48,.2)';
+        plusStatus.textContent = 'Não foi possível obter seu IP. Tente novamente.';
+        return;
+      }
+
+      plusIP = ip;
+      isPlus = true;
+      savePlusState(ip);
+      renderPlanUI();
+
+      plusStatus.className = 'plus-status show';
+      plusStatus.style.color = '#1c7a3f';
+      plusStatus.style.background = 'rgba(52,199,89,.1)';
+      plusStatus.style.borderColor = 'rgba(52,199,89,.2)';
+      plusStatus.innerHTML = 'Plus ativado para o IP <code>' + ip + '</code>. Geração instantânea liberada.';
+
+      activateBtn.disabled = false;
+      activateBtn.style.opacity = '';
+      activateBtn.innerHTML = '✓ Ativado';
+
+      showToast('Plus ativado');
+      setTimeout(() => hideOverlay(plusOverlay), 1700);
+    }
+
+    function showOverlay(el){ el.classList.add('show'); }
+    function hideOverlay(el){ el.classList.remove('show'); }
+
+    const ADS = [
+      { emoji:'🚀', title:'Curso Full Stack',   text:'Do zero ao profissional em 6 meses, com projetos reais e mentoria.', cta:'Começar agora', c1:'#0071e3', c2:'#4aa8ff' },
+      { emoji:'☁️', title:'Hospedagem Cloud',   text:'Servidores rápidos com SSL grátis e suporte 24/7. Deploy em segundos.', cta:'Ver planos', c1:'#0a84ff', c2:'#64d2ff' },
+      { emoji:'🎨', title:'Design Kit Pro',     text:'Mais de 2000 componentes prontos para seus projetos. Figma + código.', cta:'Explorar kit', c1:'#ff375f', c2:'#ff9f0a' },
+      { emoji:'🛡️', title:'VPN Segura',        text:'Navegue sem rastreadores em qualquer rede. Teste grátis por 7 dias.', cta:'Testar grátis', c1:'#30d158', c2:'#63e6be' },
+      { emoji:'📊', title:'Analytics Simples',  text:'Métricas do seu site sem complicação. Privacidade em primeiro lugar.', cta:'Experimentar', c1:'#ff9f0a', c2:'#ffd60a' }
+    ];
+
+    function pickAd(){ return ADS[Math.floor(Math.random() * ADS.length)]; }
+
+    function fillAd(ad){
+      adEmoji.textContent = ad.emoji;
+      adTitle.textContent = ad.title;
+      adText.textContent  = ad.text;
+      adCta.textContent   = ad.cta;
+      adCard.style.setProperty('--ad-c1', ad.c1);
+      adCard.style.setProperty('--ad-c2', ad.c2);
+    }
+
+    function showAdAndWait(){
+      return new Promise(resolve => {
+        const ad = pickAd();
+        fillAd(ad);
+
+        const RING_LEN = 113.1;
+        ringFill.style.transition = 'none';
+        ringFill.style.strokeDashoffset = '0';
+        countdownNum.textContent = WAIT_SECONDS;
+        countdownTxt.textContent = 'Preparando seu QR Code…';
+
+        showOverlay(adOverlay);
+        void ringFill.getBoundingClientRect();
+
+        const start = performance.now();
+        ringFill.style.transition = 'stroke-dashoffset ' + WAIT_SECONDS + 's linear';
+        ringFill.style.strokeDashoffset = String(RING_LEN);
+
+        function tick(now){
+          const elapsed = (now - start) / 1000;
+          const remaining = Math.max(0, WAIT_SECONDS - elapsed);
+          countdownNum.textContent = String(Math.max(0, Math.ceil(remaining)));
+
+          if (elapsed >= WAIT_SECONDS){
+            adRaf = null;
+            countdownTxt.textContent = 'Pronto';
+            setTimeout(() => { hideOverlay(adOverlay); resolve(); }, 320);
+          } else {
+            adRaf = requestAnimationFrame(tick);
+          }
+        }
+        adRaf = requestAnimationFrame(tick);
+      });
+    }
+
+    function generateQR(value){
+      if (typeof QRCode === 'undefined'){
+        showToast('Não foi possível carregar o gerador', 'error');
+        return;
+      }
+
+      qrTarget.innerHTML = '';
+
+      new QRCode(qrTarget, {
+        text: value,
+        width: 640,
+        height: 640,
+        colorDark: '#1d1d1f',
+        colorLight: '#ffffff',
+        correctLevel: QRCode.CorrectLevel.H
+      });
+
+      hasQR = true;
+      result.classList.add('show');
+
+      qrBox.classList.remove('animate');
+      void qrBox.offsetWidth;
+      qrBox.classList.add('animate');
+    }
+
+    async function handleGenerate(){
+      if (busy) return;
+
+      const value = normalizeUrl(input.value);
+
+      if (!value){
+        input.classList.add('shake');
+        setTimeout(() => input.classList.remove('shake'), 520);
+        showToast('Cole um link para gerar', 'error');
+        input.focus();
+        return;
+      }
+
+      input.value = value;
+      busy = true;
+      generateBtn.disabled = true;
+      generateBtn.style.opacity = '.75';
+
+      if (isPlus){
+        generateQR(value);
+        showToast('QR Code gerado');
+      } else {
+        await showAdAndWait();
+        generateQR(value);
+      }
+
+      busy = false;
+      generateBtn.disabled = false;
+      generateBtn.style.opacity = '';
+    }
+
+    async function copyImage(){
+      if (!hasQR){ showToast('Gere um QR Code primeiro', 'error'); return; }
+
+      const canvas = buildExportCanvas();
+      if (!canvas){ showToast('Gere um QR Code primeiro', 'error'); return; }
+
+      if (navigator.clipboard && typeof ClipboardItem !== 'undefined'){
+        try{
+          const blobPromise = canvasToBlob(canvas);
+          const item = new ClipboardItem({ 'image/png': blobPromise });
+          await navigator.clipboard.write([item]);
+          showToast('Imagem copiada');
+          return;
+        } catch(err1){
+          try{
+            const blob = await canvasToBlob(canvas);
+            const dataUrl = await blobToDataURL(blob);
+            const htmlBlob = new Blob(['<img src="' + dataUrl + '" alt="QR Code">'], { type: 'text/html' });
+            const textBlob = new Blob([dataUrl], { type: 'text/plain' });
+            await navigator.clipboard.write([
+              new ClipboardItem({ 'text/html': htmlBlob, 'text/plain': textBlob })
+            ]);
+            showToast('Imagem copiada');
+            return;
+          } catch(err2){
+            try{
+              const dataUrl = canvas.toDataURL('image/png');
+              const img = document.createElement('img');
+              img.src = dataUrl;
+              img.style.position = 'fixed';
+              img.style.left = '-9999px';
+              document.body.appendChild(img);
+
+              const range = document.createRange();
+              range.selectNode(img);
+              const sel = window.getSelection();
+              sel.removeAllRanges();
+              sel.addRange(range);
+
+              const ok = document.execCommand('copy');
+              sel.removeAllRanges();
+              document.body.removeChild(img);
+
+              if (ok){ showToast('Imagem copiada'); return; }
+            } catch(err3){}
+
+            console.error('Falha ao copiar:', err1, err2);
+            showToast('Não foi possível copiar. Use "Baixar imagem".', 'error');
+          }
+        }
+      } else {
+        showToast('Seu navegador não permite copiar imagens', 'error');
+      }
+    }
+
+    function downloadImage(){
+      if (!hasQR){ showToast('Gere um QR Code primeiro', 'error'); return; }
+
+      const canvas = buildExportCanvas();
+      if (!canvas){ showToast('Gere um QR Code primeiro', 'error'); return; }
+
+      const link = document.createElement('a');
+      link.download = 'qrcode.png';
+      link.href = canvas.toDataURL('image/png');
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      showToast('Download iniciado');
+    }
+
+    function openInNewTab(){
+      if (!hasQR){ showToast('Gere um QR Code primeiro', 'error'); return; }
+
+      const canvas = buildExportCanvas();
+      if (!canvas) return;
+
+      const dataUrl = canvas.toDataURL('image/png');
+      const w = window.open();
+      if (w){
+        w.document.write(
+          '<title>QR Code</title>' +
+          '<style>html,body{margin:0;height:100%;background:#fbfbfd;display:grid;place-items:center;font-family:-apple-system,system-ui,sans-serif;}' +
+          'img{max-width:min(90vw,560px);height:auto;border-radius:20px;box-shadow:0 20px 60px -20px rgba(0,0,0,.2);}' +
+          '</style>' +
+          '<img src="' + dataUrl + '" alt="QR Code">'
+        );
+        w.document.close();
+      }
+    }
+
+    function openCtxMenu(x, y){
+      ctxMenu.classList.add('show');
+      ctxMenu.setAttribute('aria-hidden', 'false');
+
+      const rect = ctxMenu.getBoundingClientRect();
+      const vw = window.innerWidth;
+      const vh = window.innerHeight;
+
+      let left = x;
+      let top = y;
+
+      if (left + rect.width > vw - 8) left = vw - rect.width - 8;
+      if (top + rect.height > vh - 8) top = vh - rect.height - 8;
+      if (left < 8) left = 8;
+      if (top < 8) top = 8;
+
+      ctxMenu.style.left = left + 'px';
+      ctxMenu.style.top  = top + 'px';
+    }
+
+    function closeCtxMenu(){
+      ctxMenu.classList.remove('show');
+      ctxMenu.setAttribute('aria-hidden', 'true');
+    }
+
+    qrBox.addEventListener('contextmenu', (e) => {
+      if (!hasQR) return;
+      e.preventDefault();
+      openCtxMenu(e.clientX, e.clientY);
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!ctxMenu.contains(e.target)) closeCtxMenu();
+    });
+    window.addEventListener('scroll', closeCtxMenu, { passive: true });
+    window.addEventListener('resize', closeCtxMenu);
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeCtxMenu();
+    });
+
+    ctxCopy.addEventListener('click', () => { closeCtxMenu(); copyImage(); });
+    ctxDownload.addEventListener('click', () => { closeCtxMenu(); downloadImage(); });
+    ctxNewTab.addEventListener('click', () => { closeCtxMenu(); openInNewTab(); });
+
+    document.addEventListener('keydown', (e) => {
+      const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
+      const mod = isMac ? e.metaKey : e.ctrlKey;
+      if (!mod) return;
+
+      const key = e.key.toLowerCase();
+      const target = e.target;
+      const inInput = target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA');
+
+      if (key === 'c' && !inInput && hasQR){
+        e.preventDefault();
+        copyImage();
+        return;
+      }
+
+      if (key === 's' && hasQR){
+        e.preventDefault();
+        downloadImage();
+        return;
+      }
+
+      if (key === 'enter' && !busy){
+        e.preventDefault();
+        handleGenerate();
+        return;
+      }
+    });
+
+    input.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      input.style.borderColor = 'var(--blue)';
+      input.style.boxShadow = '0 0 0 4px rgba(0,113,227,.15)';
+    });
+    input.addEventListener('dragleave', () => {
+      input.style.borderColor = '';
+      input.style.boxShadow = '';
+    });
+    input.addEventListener('drop', (e) => {
+      e.preventDefault();
+      input.style.borderColor = '';
+      input.style.boxShadow = '';
+
+      const dt = e.dataTransfer;
+      if (!dt) return;
+
+      let text = dt.getData('text/uri-list') || dt.getData('text/plain') || '';
+      text = text.split('\n')[0].trim();
+
+      if (text){
+        input.value = text;
+        if (!busy) handleGenerate();
+      }
+    });
+
+    qrBox.addEventListener('dragstart', (e) => {
+      if (!hasQR) return;
+      const canvas = buildExportCanvas();
+      if (!canvas) return;
+
+      const dataUrl = canvas.toDataURL('image/png');
+
+      try{
+        e.dataTransfer.setData('DownloadURL', 'image/png:qrcode.png:' + dataUrl);
+      } catch(err){}
+      try{
+        e.dataTransfer.setData('text/uri-list', dataUrl);
+      } catch(err){}
+      try{
+        e.dataTransfer.setData('text/plain', dataUrl);
+      } catch(err){}
+
+      e.dataTransfer.effectAllowed = 'copy';
+    });
+
+    generateBtn.addEventListener('click', handleGenerate);
+
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter'){
+        e.preventDefault();
+        if (!busy) handleGenerate();
+      }
+    });
+
+    input.addEventListener('focus', () => input.select());
+
+    copyBtn.addEventListener('click', copyImage);
+    downloadBtn.addEventListener('click', downloadImage);
+
+    plusBtn.addEventListener('click', () => {
+      if (isPlus){ showToast('Plus já está ativo'); return; }
+      plusStatus.classList.remove('show');
+      activateBtn.disabled = false;
+      activateBtn.style.opacity = '';
+      activateBtn.innerHTML = `
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 2l2.6 7.4H22l-6.2 4.6 2.4 7.4L12 16.9 5.8 21.4l2.4-7.4L2 9.4h7.4z"/>
+        </svg>
+        Ativar Plus`;
+      showOverlay(plusOverlay);
+    });
+
+    closePlusBtn.addEventListener('click', () => hideOverlay(plusOverlay));
+    activateBtn.addEventListener('click', activatePlus);
+
+    plusOverlay.addEventListener('click', (e) => {
+      if (e.target === plusOverlay) hideOverlay(plusOverlay);
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && plusOverlay.classList.contains('show')){
+        hideOverlay(plusOverlay);
+      }
+    });
+
+    loadPlusState();
+
+    if (isPlus){
+      fetchIP().then(ip => {
+        if (ip && ip !== plusIP){
+          plusIP = ip;
+          savePlusState(ip);
+        }
+      }).catch(() => {});
+    }
+  })();
+  </script>
+</body>
+</html>
