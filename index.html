@@ -42,15 +42,81 @@
   }
 
   /* ============================================
+     FUNDO DO PROJETO (muda quando seleciona)
+     ============================================ */
+  .bg-layer {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    overflow: hidden;
+    opacity: 0;
+    pointer-events: none;
+    background: #000;
+    transition: opacity 1.1s var(--ease);
+    will-change: opacity;
+  }
+
+  .bg-layer.active { opacity: 1; }
+
+  /* ajuste principal: menos blur, mais brilho controlado */
+  .bg-frame-wrap {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    filter: blur(3px) saturate(115%) brightness(0.42) contrast(1.05);
+    transform: scale(1.03);
+    will-change: filter;
+    transform-origin: center center;
+  }
+
+  .bg-frame {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 1.05s ease;
+    will-change: opacity;
+    background: transparent;
+  }
+
+  .bg-frame.visible { opacity: 1; }
+
+  /* máscara escura centralizada: cards legíveis, site visível nas bordas */
+  .bg-vignette {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background:
+      radial-gradient(85% 70% at 50% 50%,
+        rgba(0,0,0,0.62) 0%,
+        rgba(0,0,0,0.50) 38%,
+        rgba(0,0,0,0.78) 68%,
+        rgba(0,0,0,0.96) 100%),
+      linear-gradient(180deg,
+        rgba(0,0,0,0.55) 0%,
+        rgba(0,0,0,0.15) 25%,
+        rgba(0,0,0,0.25) 60%,
+        rgba(0,0,0,0.75) 100%);
+  }
+
+  /* ============================================
      GRADE REATIVA DE FUNDO
      ============================================ */
   #grid {
     position: fixed;
     inset: 0;
     display: grid;
-    z-index: 0;
+    z-index: 1;
     pointer-events: none;
+    transition: opacity 1.1s var(--ease);
+    will-change: opacity;
   }
+
+  body.backgrounding #grid { opacity: 0.18; }
 
   .block {
     background: var(--block);
@@ -93,10 +159,10 @@
     gap: 14px;
     padding: 9px 12px;
     border-radius: 18px;
-    background: rgba(12,12,12,0.68);
+    background: rgba(12,12,12,0.55);
     border: 1px solid rgba(255,255,255,0.10);
-    backdrop-filter: blur(26px) saturate(170%);
-    -webkit-backdrop-filter: blur(26px) saturate(170%);
+    backdrop-filter: blur(28px) saturate(170%);
+    -webkit-backdrop-filter: blur(28px) saturate(170%);
     box-shadow:
       0 1px 0 rgba(255,255,255,0.09) inset,
       0 22px 50px -24px rgba(0,0,0,0.95);
@@ -195,7 +261,7 @@
      ============================================ */
   main {
     position: relative;
-    z-index: 1;
+    z-index: 10;
     min-height: 100vh;
     display: flex;
     flex-direction: column;
@@ -206,15 +272,17 @@
   }
 
   /* ============================================
-     HEADER — DESIGN NOVO
+     HEADER
      ============================================ */
   header {
     text-align: center;
     margin-bottom: 54px;
     animation: fadeIn 1.2s var(--ease) both;
+    transition: opacity 1s var(--ease);
   }
 
-  /* badge pequeno com dot */
+  body.backgrounding header { opacity: 0.55; }
+
   .header-badge {
     display: inline-flex;
     align-items: center;
@@ -247,7 +315,6 @@
     white-space: nowrap;
   }
 
-  /* título grande com gradiente */
   header h1 {
     font-size: clamp(3rem, 8.5vw, 5.6rem);
     font-weight: 800;
@@ -265,7 +332,6 @@
     padding: 0 6px;
   }
 
-  /* linha decorativa + subtítulo */
   .header-meta {
     display: flex;
     align-items: center;
@@ -325,7 +391,6 @@
     color: inherit;
     -webkit-tap-highlight-color: transparent;
     animation: cardIn .9s var(--ease) both;
-    will-change: transform;
   }
 
   .card-link.oculto { display: none !important; }
@@ -351,7 +416,7 @@
     position: relative;
     border-radius: 20px;
     overflow: hidden;
-    background: var(--glass-bg);
+    background: rgba(10,10,10,0.55);
     border: 1px solid var(--glass-border);
     backdrop-filter: blur(26px) saturate(140%);
     -webkit-backdrop-filter: blur(26px) saturate(140%);
@@ -363,8 +428,9 @@
       opacity .55s ease,
       background .55s ease,
       border-color .55s ease,
+      filter .55s ease,
       box-shadow .7s var(--ease-soft);
-    will-change: transform, opacity;
+    will-change: transform, opacity, filter;
   }
 
   .card::after {
@@ -393,20 +459,20 @@
   }
 
   .card-link:hover .card,
-  .card-link.previewing .card {
+  .card-link.selected .card {
     transform: translateY(-3px);
-    background: var(--glass-bg-hover);
-    border-color: rgba(255,255,255,0.26);
+    background: rgba(18,18,18,0.72);
+    border-color: rgba(255,255,255,0.30);
     box-shadow:
       0 1px 0 rgba(255,255,255,0.22) inset,
       0 32px 62px -26px rgba(0,0,0,0.95),
-      0 0 46px -14px rgba(255,255,255,0.14);
+      0 0 46px -14px rgba(255,255,255,0.20);
   }
 
   .card-link:hover .card::after,
-  .card-link.previewing .card::after  { opacity: 1; }
+  .card-link.selected .card::after  { opacity: 1; }
   .card-link:hover .card::before,
-  .card-link.previewing .card::before { height: 58%; opacity: .75; }
+  .card-link.selected .card::before { height: 58%; opacity: .75; }
 
   .card-link:active .card {
     transform: translateY(-1px) scale(0.988);
@@ -417,22 +483,11 @@
     outline-offset: 3px;
   }
 
-  /* ============================================
-     ADAPTAÇÃO DA GRADE QUANDO UM CARD ABRE
-     ============================================ */
-  /* os outros cards recuam suavemente */
-  .grid-cards:has(.card-link.previewing) .card-link:not(.previewing) .card {
-    opacity: 0.45;
-    transform: scale(0.982);
-    filter: saturate(0.6);
-  }
-
-  /* em telas largas, o card aberto ganha 2 colunas */
-  @media (min-width: 900px) {
-    .card-link.previewing {
-      grid-column: span 2;
-      z-index: 5;
-    }
+  /* recuo dos outros cards */
+  .grid-cards:has(.card-link.selected) .card-link:not(.selected) .card {
+    opacity: 0.32;
+    transform: scale(0.972);
+    filter: saturate(0.35) brightness(0.7);
   }
 
   .main-row {
@@ -460,7 +515,7 @@
   }
 
   .card-link:hover .icon,
-  .card-link.previewing .icon {
+  .card-link.selected .icon {
     transform: scale(1.06);
     background: rgba(255,255,255,0.16);
     border-color: rgba(255,255,255,0.28);
@@ -522,151 +577,9 @@
   }
 
   .card-link:hover .chevron,
-  .card-link.previewing .chevron { background: rgba(255,255,255,0.19); }
+  .card-link.selected .chevron { background: rgba(255,255,255,0.19); }
   .card-link:hover .chevron svg,
-  .card-link.previewing .chevron svg { transform: rotate(90deg); }
-
-  /* ============================================
-     EXPANSÃO SUAVE DO PREVIEW
-     ============================================ */
-  .expand {
-    display: grid;
-    grid-template-rows: 0fr;
-    transition: grid-template-rows .8s var(--ease-soft);
-    will-change: grid-template-rows;
-    position: relative;
-    z-index: 1;
-  }
-
-  .card-link:hover .expand,
-  .card-link.previewing .expand {
-    grid-template-rows: 1fr;
-  }
-
-  .expand-inner {
-    overflow: hidden;
-    min-height: 0;
-  }
-
-  .expand-content {
-    padding: 0 14px 14px;
-    opacity: 0;
-    transform: translateY(-6px);
-    transition:
-      opacity .55s ease .06s,
-      transform .75s var(--ease-soft) .06s;
-  }
-
-  .card-link:hover .expand-content,
-  .card-link.previewing .expand-content {
-    opacity: 1;
-    transform: translateY(0);
-  }
-
-  .preview-shell {
-    position: relative;
-    width: 100%;
-    border-radius: 14px;
-    overflow: hidden;
-    background: #0b0b0b;
-    border: 1px solid rgba(255,255,255,0.10);
-    box-shadow:
-      0 1px 0 rgba(255,255,255,0.06) inset,
-      0 20px 40px -22px rgba(0,0,0,0.9);
-  }
-
-  .preview-chrome {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    height: 28px;
-    padding: 0 10px;
-    background: rgba(20,20,20,0.95);
-    border-bottom: 1px solid rgba(255,255,255,0.07);
-    position: relative;
-    z-index: 2;
-  }
-
-  .preview-dots {
-    display: flex;
-    gap: 5px;
-    flex-shrink: 0;
-  }
-
-  .preview-dots span {
-    width: 8px; height: 8px;
-    border-radius: 50%;
-    background: rgba(255,255,255,0.16);
-  }
-  .preview-dots span:nth-child(1) { background: #ff5f57; opacity: .85; }
-  .preview-dots span:nth-child(2) { background: #febc2e; opacity: .85; }
-  .preview-dots span:nth-child(3) { background: #28c840; opacity: .85; }
-
-  .preview-url {
-    flex: 1;
-    min-width: 0;
-    font-size: 10px;
-    font-weight: 500;
-    color: rgba(255,255,255,0.5);
-    letter-spacing: 0.01em;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    padding: 2px 9px;
-    border-radius: 6px;
-    background: rgba(255,255,255,0.05);
-  }
-
-  .preview-body {
-    position: relative;
-    width: 100%;
-    aspect-ratio: 16 / 10;
-    background: #0b0b0b;
-    overflow: hidden;
-  }
-
-  .preview-body iframe {
-    position: absolute;
-    inset: 0;
-    width: 200%;
-    height: 200%;
-    border: 0;
-    transform: scale(0.5);
-    transform-origin: 0 0;
-    pointer-events: none;
-    background: #fff;
-    opacity: 0;
-    transition: opacity .6s ease .1s;
-  }
-
-  .preview-body iframe.pronto {
-    opacity: 1;
-  }
-
-  .preview-loading {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: #0b0b0b;
-    color: rgba(255,255,255,0.42);
-    font-size: 11.5px;
-    letter-spacing: 0.02em;
-    transition: opacity .5s ease;
-    z-index: 1;
-  }
-
-  .preview-loading.hide { opacity: 0; pointer-events: none; }
-
-  .preview-loading .spin {
-    width: 18px; height: 18px;
-    border: 2px solid rgba(255,255,255,0.12);
-    border-top-color: #fff;
-    border-radius: 50%;
-    animation: spin .9s linear infinite;
-    margin-right: 9px;
-  }
+  .card-link.selected .chevron svg { transform: translateX(3px); }
 
   /* ============================================
      ESTADOS
@@ -713,16 +626,32 @@
     .hotbar-count { display: none; }
   }
 
+  @media (hover: none) {
+    .bg-layer { display: none !important; }
+  }
+
   @media (prefers-reduced-motion: reduce) {
     html { scroll-behavior: auto; }
     .block, .card, .icon, .chevron, .chevron svg,
-    .card-link, .hotbar, .hotbar-dot, .expand,
-    .expand-content, .preview-body iframe { transition: none; animation: none; }
+    .card-link, .hotbar, .hotbar-dot,
+    .bg-layer, .bg-frame, #grid, header { transition: none; animation: none; }
   }
 </style>
 </head>
 <body>
 
+<!-- ============ FUNDO DO PROJETO ============ -->
+<div class="bg-layer" id="bgLayer" aria-hidden="true">
+  <div class="bg-frame-wrap">
+    <iframe class="bg-frame" id="bgFrameA"
+            title="" loading="lazy" referrerpolicy="no-referrer"></iframe>
+    <iframe class="bg-frame" id="bgFrameB"
+            title="" loading="lazy" referrerpolicy="no-referrer"></iframe>
+  </div>
+  <div class="bg-vignette"></div>
+</div>
+
+<!-- ============ GRADE DE FUNDO ============ -->
 <div id="grid"></div>
 
 <!-- ============ HOTBAR ============ -->
@@ -757,7 +686,7 @@
     <h1>Projetos</h1>
     <div class="header-meta">
       <span class="meta-line"></span>
-      <span class="meta-text">Selecione um para continuar</span>
+      <span class="meta-text">Passe o mouse para ver</span>
       <span class="meta-line"></span>
     </div>
   </header>
@@ -782,6 +711,8 @@
 
   const API      = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/git/trees/${BRANCH}?recursive=1`;
   const BASE_URL = `https://${GITHUB_USER}.github.io/${GITHUB_REPO}/`;
+
+  const temHover = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
 
   // ============================================================
   // 🔲 GRADE REATIVA DE FUNDO
@@ -929,6 +860,80 @@
   });
 
   // ============================================================
+  // 🌌 FUNDO DINÂMICO (2 iframes p/ crossfade)
+  // ============================================================
+  const bgLayer = document.getElementById('bgLayer');
+  const bodyEl  = document.body;
+
+  const frames = {
+    a: document.getElementById('bgFrameA'),
+    b: document.getElementById('bgFrameB')
+  };
+
+  let slotAtual = 'a';
+  let urlAtual  = null;
+  let reqId     = 0;
+  let hideTimer = null;
+
+  function mostrarFundo(url) {
+    clearTimeout(hideTimer);
+    if (!url) return;
+
+    // mesma URL: só garante visibilidade
+    if (url === urlAtual) {
+      bgLayer.classList.add('active');
+      bodyEl.classList.add('backgrounding');
+      return;
+    }
+
+    urlAtual = url;
+    const meuReq = ++reqId;
+
+    const proximoSlot = slotAtual === 'a' ? 'b' : 'a';
+    const proximo = frames[proximoSlot];
+    const atual   = frames[slotAtual];
+
+    proximo.classList.remove('visible');
+
+    const onLoad = () => {
+      proximo.removeEventListener('load', onLoad);
+      if (meuReq !== reqId) return;
+
+      // pequena espera pra garantir que o browser pintou o primeiro frame
+      requestAnimationFrame(() => {
+        if (meuReq !== reqId) return;
+        proximo.classList.add('visible');
+        atual.classList.remove('visible');
+        slotAtual = proximoSlot;
+        bgLayer.classList.add('active');
+        bodyEl.classList.add('backgrounding');
+      });
+    };
+
+    proximo.addEventListener('load', onLoad);
+
+    // se já carregou essa URL nesse slot, reaproveita
+    if (proximo.dataset.loaded !== url) {
+      proximo.dataset.loaded = url;
+      proximo.src = url;
+    } else {
+      onLoad();
+    }
+
+    // ativa a camada imediatamente (o frame aparece com o fade do CSS)
+    bgLayer.classList.add('active');
+    bodyEl.classList.add('backgrounding');
+  }
+
+  function esconderFundo() {
+    clearTimeout(hideTimer);
+    hideTimer = setTimeout(() => {
+      bgLayer.classList.remove('active');
+      bodyEl.classList.remove('backgrounding');
+    }, 180);
+  }
+
+  // ============================================================
   // 📁 CARREGA E RENDERIZA OS CARDS
   // ============================================================
   const content  = document.getElementById('content');
@@ -976,7 +981,6 @@
     vazioEl = document.getElementById('vazio');
     countEl.textContent = files.length;
 
-    // remove a animação de entrada após concluir (evita conflito com FLIP)
     document.querySelectorAll('.card-link').forEach(el => {
       el.addEventListener('animationend', function handler() {
         el.style.animation = 'none';
@@ -985,7 +989,7 @@
     });
 
     ativarCycling();
-    ativarPreview();
+    ativarSelecao();
     aplicarFiltro(buscaEl.value);
   }
 
@@ -993,7 +997,7 @@
     const nomeBonito = formatarNome(f.name);
     const frases = [
       f.path,
-      'Clique para abrir',
+      'Passe o mouse para ver',
       f.url
     ];
 
@@ -1029,132 +1033,40 @@
               </svg>
             </div>
           </div>
-
-          <div class="expand">
-            <div class="expand-inner">
-              <div class="expand-content">
-                <div class="preview-shell">
-                  <div class="preview-chrome">
-                    <div class="preview-dots"><span></span><span></span><span></span></div>
-                    <div class="preview-url">${f.url.replace(/^https?:\/\//,'')}</div>
-                  </div>
-                  <div class="preview-body">
-                    <div class="preview-loading">
-                      <div class="spin"></div> Carregando preview…
-                    </div>
-                    <iframe
-                      data-src="${f.url}"
-                      title="Preview de ${nomeBonito}"
-                      loading="lazy"
-                      referrerpolicy="no-referrer"
-                      sandbox="allow-scripts allow-forms allow-popups allow-popups-to-escape-sandbox"></iframe>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
         </div>
       </a>
     `;
   }
 
   // ============================================================
-  // 🎬 FLIP — anima reflow da grade suavemente
+  // 🎯 SELEÇÃO DE CARD → muda o fundo
   // ============================================================
-  let flipRAF = null;
-  const flipQueue = [];
-
-  function applyWithFlip(mutate) {
-    flipQueue.push(mutate);
-    if (flipRAF) return;
-
-    flipRAF = requestAnimationFrame(() => {
-      flipRAF = null;
-
-      const els = [...document.querySelectorAll('.card-link:not(.oculto)')];
-      const before = els.map(el => el.getBoundingClientRect());
-
-      // aplica todas as mutações pendentes
-      flipQueue.forEach(fn => fn());
-      flipQueue.length = 0;
-
-      els.forEach((el, i) => {
-        const a = before[i];
-        const b = el.getBoundingClientRect();
-        const dx = a.left - b.left;
-        const dy = a.top - b.top;
-        const dw = b.width ? a.width / b.width : 1;
-        const dh = b.height ? a.height / b.height : 1;
-
-        const moved = Math.abs(dx) > 0.5 || Math.abs(dy) > 0.5;
-        const resized = Math.abs(dw - 1) > 0.01 || Math.abs(dh - 1) > 0.01;
-        if (!moved && !resized) return;
-
-        el.animate([
-          {
-            transformOrigin: 'top left',
-            transform: `translate(${dx}px, ${dy}px) scale(${dw}, ${dh})`
-          },
-          {
-            transformOrigin: 'top left',
-            transform: 'none'
-          }
-        ], {
-          duration: 640,
-          easing: 'cubic-bezier(.32, .72, 0, 1)',
-          fill: 'none'
-        });
-      });
-    });
-  }
-
-  // ============================================================
-  // 🖼️ PREVIEW EMBUTIDO — carrega o iframe só no 1º hover
-  // ============================================================
-  const previewTimer = new WeakMap();
-  const HOVER_DELAY = 240;
-
-  function carregarIframe(cardEl) {
-    const iframe = cardEl.querySelector('.preview-body iframe');
-    const loading = cardEl.querySelector('.preview-loading');
-    if (!iframe || iframe.dataset.loaded === '1') return;
-
-    iframe.dataset.loaded = '1';
-    iframe.src = iframe.dataset.src;
-
-    iframe.addEventListener('load', () => {
-      iframe.classList.add('pronto');
-      if (loading) loading.classList.add('hide');
-    }, { once: true });
-
-    setTimeout(() => {
-      if (loading && !loading.classList.contains('hide')) {
-        loading.classList.add('hide');
-      }
-    }, 4500);
-  }
-
-  function ativarPreview() {
+  function ativarSelecao() {
     document.querySelectorAll('.card-link').forEach(cardEl => {
-      cardEl.addEventListener('mouseenter', () => {
-        applyWithFlip(() => cardEl.classList.add('previewing'));
+      if (temHover) {
+        cardEl.addEventListener('mouseenter', () => {
+          document.querySelectorAll('.card-link.selected')
+            .forEach(el => el.classList.remove('selected'));
+          cardEl.classList.add('selected');
+          mostrarFundo(cardEl.dataset.url);
+        });
 
-        clearTimeout(previewTimer.get(cardEl));
-        const t = setTimeout(() => carregarIframe(cardEl), HOVER_DELAY);
-        previewTimer.set(cardEl, t);
-      });
-
-      cardEl.addEventListener('mouseleave', () => {
-        applyWithFlip(() => cardEl.classList.remove('previewing'));
-        clearTimeout(previewTimer.get(cardEl));
-      });
+        cardEl.addEventListener('mouseleave', () => {
+          cardEl.classList.remove('selected');
+          esconderFundo();
+        });
+      }
 
       cardEl.addEventListener('focus', () => {
-        applyWithFlip(() => cardEl.classList.add('previewing'));
-        carregarIframe(cardEl);
+        document.querySelectorAll('.card-link.selected')
+          .forEach(el => el.classList.remove('selected'));
+        cardEl.classList.add('selected');
+        mostrarFundo(cardEl.dataset.url);
       });
+
       cardEl.addEventListener('blur', () => {
-        applyWithFlip(() => cardEl.classList.remove('previewing'));
+        cardEl.classList.remove('selected');
+        esconderFundo();
       });
     });
   }
@@ -1178,6 +1090,12 @@
 
     countEl.textContent = visiveis;
     if (vazioEl) vazioEl.hidden = visiveis !== 0;
+
+    const sel = document.querySelector('.card-link.selected');
+    if (sel && sel.classList.contains('oculto')) {
+      sel.classList.remove('selected');
+      esconderFundo();
+    }
   }
 
   buscaEl.addEventListener('input', () => aplicarFiltro(buscaEl.value));
